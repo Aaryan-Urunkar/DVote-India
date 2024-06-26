@@ -15,6 +15,7 @@ contract Election {
     error VoterHasAlreadyVoted();
     error ElectionNotOpen();
     error IllegalTransfer();
+    error CandidateDoesNotExist();
 
     //Events
     event CandidateAdded(string indexed name , string indexed politicalParty);
@@ -44,6 +45,7 @@ contract Election {
     address i_owner;
     mapping(string => uint256) s_votesPerCandidate;
     ElectionState s_electionStatus;
+    uint256[] public s_votesCount;
 
     //constructor
     constructor(){
@@ -69,7 +71,7 @@ contract Election {
     }
 
     //functions (getters at the end)
-    function addCandidate(string memory candidateName , string memory candidatePoliticalParty) private onlyOwner {
+    function addCandidate(string memory candidateName , string memory candidatePoliticalParty) external onlyOwner {
         if(s_electionStatus == ElectionState.ENDED){
             revert ElectionNotOpen();
         }
@@ -93,6 +95,16 @@ contract Election {
         if(s_electionStatus == ElectionState.ENDED){
             revert ElectionNotOpen();
         }
+        uint256 startingIndex=0;
+        bool candidateExists = false;
+        for(uint256 i = startingIndex ; i<s_candidates.length ;i++){
+            if(keccak256(bytes(candidateName)) == keccak256(bytes(s_candidates[i].name))){
+                candidateExists = true;
+            }
+        }
+        if(!candidateExists){
+            revert CandidateDoesNotExist();
+        }
         Voter memory newVoter = Voter({
             name : name,
             birthDate : birthDate,
@@ -100,7 +112,7 @@ contract Election {
             birthYear : birthYear,
             aadharNumberHashed : keccak256(abi.encode(aadharNumber))
         });
-        uint256 startingIndex=0;
+        startingIndex=0;
         Voter memory temp;
         for(uint256 i = startingIndex ; i< s_alreadyVoted.length ; i++){
             temp = s_alreadyVoted[i];
@@ -113,15 +125,34 @@ contract Election {
         emit VoterAdded( newVoter.aadharNumberHashed , newVoter.name );
     }
 
-    function endElection() private onlyOwner {
+    function endElection() public onlyOwner {
         s_electionStatus = ElectionState.ENDED;
+    }
+
+    function declareWinner() public onlyOwner returns(string memory, string memory , uint256){
+        endElection();
+        string memory winnerName="";
+        string memory winningParty="";
+        uint256 maxVotes=0;
+        uint256 startingIndex=0;
+        uint256 temp=0;
+        for(uint256 i = startingIndex ; i < s_candidates.length ;i++){
+            temp = getVotesPerCandidate(s_candidates[i].name);
+            if(temp > maxVotes) {
+                maxVotes = temp;
+                winnerName = s_candidates[i].name;
+                winningParty= s_candidates[i].politicalParty;
+            }
+            s_votesCount.push(temp);
+        }
+        return (winnerName , winningParty , maxVotes);
     }
 
     function getCandidates() view public returns(Candidate[] memory){
         return s_candidates;
     }
 
-    function getVoters() view private returns(Voter[] memory){
+    function getVoters() view external returns(Voter[] memory){
         return s_alreadyVoted;
     }
 
@@ -131,5 +162,13 @@ contract Election {
 
     function getOwner() view public returns(address){
         return i_owner;
+    }
+
+    function getVotesPerCandidate(string memory candidateName) view public returns(uint256){
+        return s_votesPerCandidate[candidateName];
+    }
+
+    function getVotesCount() view public returns(uint256[] memory){
+        return s_votesCount;
     }
 }
