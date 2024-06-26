@@ -42,7 +42,7 @@ contract Election {
     //State variables
     Candidate[] public s_candidates;
     Voter[] private s_alreadyVoted;
-    address i_owner;
+    address immutable i_owner;
     mapping(string => uint256) s_votesPerCandidate;
     ElectionState s_electionStatus;
     uint256[] public s_votesCount;
