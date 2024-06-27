@@ -105,11 +105,26 @@ contract InteractionsTest is Test {
         DeclareWinner declareWinner = new DeclareWinner();
         vm.expectEmit(true , true, true, false, address(election));
         emit WinnerDeclared(SAMPLE_CANDIDATE_ , SAMPLE_POLITICAL_PARTY_ , election.getVotesPerCandidate(SAMPLE_CANDIDATE_));
-        (string memory winnerName, string memory winningParty, uint256 maxVotes) = declareWinner.declareWinner(address(election) , deployerKey);
-        assertEq(winnerName , SAMPLE_CANDIDATE_);
-        assertEq(winningParty , SAMPLE_POLITICAL_PARTY_);
-        assertEq(maxVotes , election.getVotesPerCandidate(SAMPLE_CANDIDATE_));
+        (string[] memory winnerName, string[] memory winningParty, uint256[] memory maxVotes) = declareWinner.declareWinner(address(election) , deployerKey);
+        assertEq(winnerName[0] , SAMPLE_CANDIDATE_);
+        assertEq(winningParty[0] , SAMPLE_POLITICAL_PARTY_);
+        assertEq(maxVotes[0] , election.getVotesPerCandidate(SAMPLE_CANDIDATE_));
     } 
 
+    function test_VerifyingAppropriateResultOnTie() external AddingCandidate{
+        addCandidate.addCandidate(address(election),SAMPLE_CANDIDATE_2,SAMPLE_POLITICAL_PARTY_2, deployerKey);
+        Vote vote = new Vote();
+        vote.vote(address(election), SAMPLE_VOTER_1, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_1, SAMPLE_CANDIDATE_);
+        vote.vote(address(election), SAMPLE_VOTER_2, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_2, SAMPLE_CANDIDATE_);
+        vote.vote(address(election), SAMPLE_VOTER_3, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_3, SAMPLE_CANDIDATE_2);
+        vote.vote(address(election), SAMPLE_VOTER_4, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_4, SAMPLE_CANDIDATE_2);
+    
+        DeclareWinner declareWinner = new DeclareWinner();
+        (string[] memory winningCandidates, string[] memory winningParties, uint256[] memory maxVotesArray) = declareWinner.declareWinner(address(election) , deployerKey);
+        
+        assertEq(maxVotesArray[0] , maxVotesArray[1]);
+        assertEq(winningParties.length , 2);
+        assertEq(winningCandidates.length , 2);
+    }
     
 }

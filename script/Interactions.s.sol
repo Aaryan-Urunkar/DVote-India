@@ -25,10 +25,10 @@ contract Vote is Script {
 
 contract DeclareWinner is Script {
 
-    function declareWinner(address election , uint256 deployerKey) public returns(string memory, string memory , uint256){
+    function declareWinner(address election , uint256 deployerKey) public returns(string[] memory, string[] memory , uint256[] memory){
         vm.startBroadcast(deployerKey);
-        (string memory winningCandidate, string memory winningParty, uint256 maxVotes) = Election(payable(election)).declareWinner();
+        (string[] memory winningCandidates, string[] memory winningParties, uint256[] memory maxVotes) = Election(payable(election)).declareWinner();
         vm.stopBroadcast();
-        return (winningCandidate , winningParty , maxVotes);
+        return ( winningCandidates, winningParties, maxVotes );
     }
 }

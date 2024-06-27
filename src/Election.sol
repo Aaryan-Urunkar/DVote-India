@@ -1,5 +1,6 @@
 // SPDX-License-Identifier:MIT
 pragma solidity ^0.8.20;
+import {console} from "forge-std/console.sol";
 
 /**  
  * @title An election contract
@@ -21,6 +22,7 @@ contract Election {
     event CandidateAdded(string indexed name , string indexed politicalParty);
     event VoterAdded(bytes32 indexed aadharNumberHashed , string name);
     event WinnerDeclared(string indexed winningCandidate , string indexed winningParty , uint256 maxVotes);
+    event Tie(string[] indexed winningCandidates , string[] indexed winningParties);
 
     //Type declarations
     struct Candidate {
@@ -77,8 +79,9 @@ contract Election {
             revert ElectionNotOpen();
         }
         uint256 startingIndex=0;
+        uint256 noOfCandidates = s_candidates.length;
         Candidate memory temp;
-        for(uint256 i=startingIndex ; i< s_candidates.length ; i++){
+        for(uint256 i=startingIndex ; i< noOfCandidates ; i++){
             temp = s_candidates[i];
             if(keccak256(bytes(temp.politicalParty)) == keccak256(bytes(candidatePoliticalParty))){
                 revert PartyAlreadyExists();
@@ -97,8 +100,9 @@ contract Election {
             revert ElectionNotOpen();
         }
         uint256 startingIndex=0;
+        uint256 noOfCandidates = s_candidates.length;
         bool candidateExists = false;
-        for(uint256 i = startingIndex ; i<s_candidates.length ;i++){
+        for(uint256 i = startingIndex ; i<noOfCandidates ;i++){
             if(keccak256(bytes(candidateName)) == keccak256(bytes(s_candidates[i].name))){
                 candidateExists = true;
             }
@@ -114,8 +118,9 @@ contract Election {
             aadharNumberHashed : keccak256(abi.encode(aadharNumber))
         });
         startingIndex=0;
+        uint256 votersLength = s_alreadyVoted.length;
         Voter memory temp;
-        for(uint256 i = startingIndex ; i< s_alreadyVoted.length ; i++){
+        for(uint256 i = startingIndex ; i< votersLength ; i++){
             temp = s_alreadyVoted[i];
             if(temp.aadharNumberHashed == newVoter.aadharNumberHashed){
                 revert VoterHasAlreadyVoted();
@@ -130,24 +135,60 @@ contract Election {
         s_electionStatus = ElectionState.ENDED;
     }
 
-    function declareWinner() public onlyOwner returns(string memory, string memory , uint256) {
+    function declareWinner() public onlyOwner returns(string[] memory, string[] memory , uint256[] memory) {
         endElection();
         string memory winnerName="";
         string memory winningParty="";
         uint256 maxVotes=0;
         uint256 startingIndex=0;
         uint256 temp=0;
-        for(uint256 i = startingIndex ; i < s_candidates.length ;i++){
-            temp = getVotesPerCandidate(s_candidates[i].name);
+        uint256 noOfCandidates = s_candidates.length;
+        bool tie = false;
+        for(uint256 i = startingIndex ; i < noOfCandidates ;i++){
+            Candidate memory candidate = s_candidates[i];
+            temp = getVotesPerCandidate(candidate.name);
             if(temp > maxVotes) {
                 maxVotes = temp;
-                winnerName = s_candidates[i].name;
-                winningParty= s_candidates[i].politicalParty;
+                winnerName = candidate.name;
+                winningParty= candidate.politicalParty;
+            } else if(temp == maxVotes){
+                tie=true;
             }
             s_votesCount.push(temp);
         }
-        emit WinnerDeclared(winnerName , winningParty , maxVotes);
-        return (winnerName , winningParty , maxVotes);
+        if(tie){
+            uint256 noOfTiedCandidates = 0;
+            for(uint256 i=0;i<noOfCandidates;i++){
+                if(getVotesPerCandidate(s_candidates[i].name) == maxVotes){
+                    noOfTiedCandidates++;
+                }
+            }
+            uint256[] memory maxVotesArray = new uint256[](noOfTiedCandidates);
+            string[] memory winnerNameArray = new string[](noOfTiedCandidates);
+            string[] memory winningPartyArray = new string[](noOfTiedCandidates);
+            uint256 arraysIndex = 0;
+            for(uint256 i=0;i<noOfCandidates;i++){
+                Candidate memory candidate = s_candidates[i];
+                if(getVotesPerCandidate(candidate.name) == maxVotes){
+                    maxVotesArray[arraysIndex] = maxVotes;
+                    winnerNameArray[arraysIndex] = candidate.name;
+                    winningPartyArray[arraysIndex] = candidate.politicalParty;
+                    arraysIndex++;
+                }
+            }
+            emit Tie(winnerNameArray, winningPartyArray);
+            return (winnerNameArray, winningPartyArray , maxVotesArray);
+
+        } else {
+            emit WinnerDeclared(winnerName , winningParty , maxVotes);
+            uint256[] memory maxVotesArray = new uint256[](1);
+            maxVotesArray[0] = maxVotes;
+            string[] memory winnerNameArray = new string[](1);
+            winnerNameArray[0] = winnerName;
+            string[] memory winningPartyArray = new string[](1);
+            winningPartyArray[0] = winningParty;
+            return (winnerNameArray , winningPartyArray , maxVotesArray);
+        }
     }
 
     function getCandidates() view public returns(Candidate[] memory){

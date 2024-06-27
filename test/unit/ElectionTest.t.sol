@@ -10,6 +10,7 @@ contract ElectionTest is Test {
     event CandidateAdded(string indexed name , string indexed politicalParty);
     event VoterAdded(bytes32 indexed aadharNumberHashed , string name);
     event WinnerDeclared(string indexed winningCandidate , string indexed winningParty , uint256 maxVotes);
+    event Tie(string[] indexed winningCandidates , string[] indexed winningParties);
 
     Election public election;
 
@@ -193,10 +194,10 @@ contract ElectionTest is Test {
         emit WinnerDeclared(SAMPLE_CANDIDATE_2 , SAMPLE_POLITICAL_PARTY_2, election.getVotesPerCandidate(SAMPLE_CANDIDATE_2));
 
         vm.prank(owner);
-        (string memory name, string memory party,uint256 maxVotes) = election.declareWinner();
-        assertEq(keccak256(abi.encode(name)) , keccak256(abi.encode(SAMPLE_CANDIDATE_2)));
-        assertEq(keccak256(abi.encode(party)) , keccak256(abi.encode(SAMPLE_POLITICAL_PARTY_2)));
-        assertEq(maxVotes,3);
+        (string[] memory name, string[] memory party ,uint256[] memory maxVotes) = election.declareWinner();
+        assertEq(keccak256(abi.encode(name[0])) , keccak256(abi.encode(SAMPLE_CANDIDATE_2)));
+        assertEq(keccak256(abi.encode(party[0])) , keccak256(abi.encode(SAMPLE_POLITICAL_PARTY_2)));
+        assertEq(maxVotes[0],3);
 
         assertEq(election.getCandidates().length , election.getVotesCount().length);
     }
@@ -211,6 +212,29 @@ contract ElectionTest is Test {
         election.vote(SAMPLE_VOTER_1,SAMPLE_BIRTH_DATE,SAMPLE_BIRTH_MONTH,SAMPLE_BIRTH_YEAR,SAMPLE_AADHAR_NUMBER_1,SAMPLE_CANDIDATE_);
         vm.expectRevert(Election.ElectionNotEnded.selector);
         election.getVotesCount();
+    }
+
+    function test_WhenTiedTieEventIsEmittedAndAllCandidatesAreReturned() external AddCandidate{
+        vm.prank(owner);
+        election.addCandidate(SAMPLE_CANDIDATE_2 , SAMPLE_POLITICAL_PARTY_2);
+        election.vote(SAMPLE_VOTER_1 , SAMPLE_BIRTH_DATE , SAMPLE_BIRTH_MONTH , SAMPLE_BIRTH_YEAR , SAMPLE_AADHAR_NUMBER_1 , SAMPLE_CANDIDATE_2);
+        election.vote(SAMPLE_VOTER_2 , SAMPLE_BIRTH_DATE , SAMPLE_BIRTH_MONTH , SAMPLE_BIRTH_YEAR , SAMPLE_AADHAR_NUMBER_2 , SAMPLE_CANDIDATE_);
+        string[] memory winningCandidatesArray= new string[](election.getCandidates().length);
+        
+        winningCandidatesArray[0] = SAMPLE_CANDIDATE_;
+        winningCandidatesArray[1] = SAMPLE_CANDIDATE_2;
+        string[] memory winningPartiesArray= new string[](election.getCandidates().length);
+        winningPartiesArray[0] = SAMPLE_POLITICAL_PARTY_;
+        winningPartiesArray[1] = SAMPLE_POLITICAL_PARTY_2;  
+        vm.prank(owner);
+        vm.expectEmit(true , true , false, false, address(election));
+        emit Tie(winningCandidatesArray , winningPartiesArray);
+        
+        (string[] memory winningCandidates, string[] memory winningParties, uint256[] memory maxVotesArray) = election.declareWinner();
+        
+        assertEq(maxVotesArray[0] , maxVotesArray[1]);
+        assertEq(winningParties.length , 2);
+        assertEq(winningCandidates.length , 2);
     }
 
 }
