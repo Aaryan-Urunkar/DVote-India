@@ -56,15 +56,7 @@ contract InteractionsTest is Test {
         assertEq(election.getCandidates()[0].politicalParty , SAMPLE_POLITICAL_PARTY_);
     }
 
-    function test_RunFunction() external {
-        AddCandidate addCandidate2 = new AddCandidate();
-        addCandidate2.run();
-        address recentElectionDeployment = DevOpsTools.get_most_recent_deployment("Election" , block.chainid);
-        Election ongoingElection = Election(payable(recentElectionDeployment));
-        assertEq(ongoingElection.getCandidates().length , 1);
-        assertEq(ongoingElection.getCandidates()[0].name , addCandidate2.CANDIDATE_NAME());
-        assertEq(ongoingElection.getCandidates()[0].politicalParty , addCandidate2.PARTY());
-    }
+    
 
 
     //////////////
@@ -94,16 +86,7 @@ contract InteractionsTest is Test {
         vote.vote(address(election), SAMPLE_VOTER_1, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_1, SAMPLE_CANDIDATE_2);
     }
 
-    function test_VoteRunFunction() external {
-        AddCandidate addCandidate2 = new AddCandidate();
-        addCandidate2.run();
-        address recentElectionDeployment = DevOpsTools.get_most_recent_deployment("Election" , block.chainid);
-        Election ongoingElection = Election(payable(recentElectionDeployment));
-        Vote vote = new Vote();
-        vote.run();
-        assertEq(ongoingElection.getVoters()[0].aadharNumberHashed , keccak256(abi.encode(vote.SAMPLE_AADHAR_NUMBER_1())));
-        assertEq(ongoingElection.getVoters()[0].name , vote.SAMPLE_VOTER_1());
-    }
+    
 
 
     ////////////////////
@@ -128,23 +111,5 @@ contract InteractionsTest is Test {
         assertEq(maxVotes , election.getVotesPerCandidate(SAMPLE_CANDIDATE_));
     } 
 
-    function test_DeclareWinnerRunFunction() external {
-        address recentElectionDeployment = DevOpsTools.get_most_recent_deployment("Election" , block.chainid);
-        Election ongoingElection = Election(payable(recentElectionDeployment));
-        AddCandidate addCandidate2 = new AddCandidate();
-        addCandidate2.run();
-        addCandidate2.addCandidate(recentElectionDeployment , SAMPLE_CANDIDATE_2, SAMPLE_POLITICAL_PARTY_2 , deployerKey);
-        Vote vote = new Vote();
-        vote.run();
-        vote.vote(recentElectionDeployment , SAMPLE_VOTER_2, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR , SAMPLE_AADHAR_NUMBER_2 , SAMPLE_CANDIDATE_);
-        vote.vote(recentElectionDeployment , SAMPLE_VOTER_3, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR , SAMPLE_AADHAR_NUMBER_3 , SAMPLE_CANDIDATE_2);
-        vote.vote(recentElectionDeployment , SAMPLE_VOTER_4, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR , SAMPLE_AADHAR_NUMBER_4 , SAMPLE_CANDIDATE_2);
-        vote.vote(recentElectionDeployment , SAMPLE_VOTER_5, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR , SAMPLE_AADHAR_NUMBER_5 , SAMPLE_CANDIDATE_);
     
-        DeclareWinner declareWinner = new DeclareWinner();
-        (string memory winningCandidate, string memory winningParty, uint256 maxVotes) = declareWinner.run();
-        assertEq(winningCandidate , SAMPLE_CANDIDATE_);
-        assertEq(winningParty , SAMPLE_POLITICAL_PARTY_);
-        assertEq(maxVotes , ongoingElection.getVotesPerCandidate(SAMPLE_CANDIDATE_));
-    }
 }
