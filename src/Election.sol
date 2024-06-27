@@ -11,7 +11,7 @@ contract Election {
     //Errors
     error NotOwner();
     error PartyAlreadyExists();
-    error CandidateAlreadyExists();
+    error ElectionNotEnded();
     error VoterHasAlreadyVoted();
     error ElectionNotOpen();
     error IllegalTransfer();
@@ -20,6 +20,7 @@ contract Election {
     //Events
     event CandidateAdded(string indexed name , string indexed politicalParty);
     event VoterAdded(bytes32 indexed aadharNumberHashed , string name);
+    event WinnerDeclared(string indexed winningCandidate , string indexed winningParty , uint256 maxVotes);
 
     //Type declarations
     struct Candidate {
@@ -129,7 +130,7 @@ contract Election {
         s_electionStatus = ElectionState.ENDED;
     }
 
-    function declareWinner() public onlyOwner returns(string memory, string memory , uint256){
+    function declareWinner() public onlyOwner returns(string memory, string memory , uint256) {
         endElection();
         string memory winnerName="";
         string memory winningParty="";
@@ -145,6 +146,7 @@ contract Election {
             }
             s_votesCount.push(temp);
         }
+        emit WinnerDeclared(winnerName , winningParty , maxVotes);
         return (winnerName , winningParty , maxVotes);
     }
 
@@ -169,6 +171,9 @@ contract Election {
     }
 
     function getVotesCount() view public returns(uint256[] memory){
+        if(s_electionStatus == ElectionState.OPEN){
+            revert ElectionNotEnded();
+        }
         return s_votesCount;
     }
 }
