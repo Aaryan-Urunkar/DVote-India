@@ -66,6 +66,12 @@ contract ElectionTest is Test {
         payable(address(election)).transfer(0.5 ether);
     }
 
+    function testFallbackRevertsOnFallbackCall() public {
+        // Attempt to call fallback function with random data
+        vm.expectRevert(Election.IllegalTransfer.selector);
+        address(election).call(abi.encodeWithSignature("nonExistentFunction()"));
+    }
+
     ////////////////
     //endElection//
     //////////////
