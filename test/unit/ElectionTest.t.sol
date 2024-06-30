@@ -4,6 +4,7 @@ import {Election} from "../../src/Election.sol";
 import {DeployElection} from "../../script/DeployElection.s.sol";
 import {Test , console} from "forge-std/Test.sol";
 import {HelperConfig} from "../../script/HelperConfig.s.sol";
+import {DeployDeployElection} from "../../script/DeployDeployElection.s.sol";
 
 contract ElectionTest is Test {
 
@@ -47,9 +48,10 @@ contract ElectionTest is Test {
 
     function setUp() external {
         //Write the setup for your tests here
-        DeployElection deployer= new DeployElection();
+        DeployDeployElection deploydeployElection = new DeployDeployElection();
+        DeployElection deployer= deploydeployElection.run();
         //vm.prank(msg.sender);
-        (election, ,owner) = deployer.run();
+        (election, owner) = deployer.deployElection(SAMPLE_REGION_CODE , msg.sender);
     }
 
     function test_DeployerIsOwner()external view{

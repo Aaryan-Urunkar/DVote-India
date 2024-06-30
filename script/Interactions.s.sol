@@ -5,8 +5,8 @@ import {Election} from "../src/Election.sol";
 
 contract AddCandidate is Script{
 
-    function addCandidate(address election ,string memory name , string memory politicalParty, uint256 deployerKey) public{ 
-        vm.startBroadcast(deployerKey);
+    function addCandidate(address election ,string memory name , string memory politicalParty) public{ 
+        vm.startBroadcast();
         Election(payable(election)).addCandidate(name, politicalParty);
         vm.stopBroadcast();
     }
@@ -23,8 +23,8 @@ contract Vote is Script {
 
 contract DeclareWinner is Script {
 
-    function declareWinner(address election , uint256 deployerKey) public returns(string[] memory, string[] memory , uint256[] memory){
-        vm.startBroadcast(deployerKey);
+    function declareWinner(address election ) public returns(string[] memory, string[] memory , uint256[] memory){
+        vm.startBroadcast();
         (string[] memory winningCandidates, string[] memory winningParties, uint256[] memory maxVotes) = Election(payable(election)).declareWinner();
         vm.stopBroadcast();
         return ( winningCandidates, winningParties, maxVotes );

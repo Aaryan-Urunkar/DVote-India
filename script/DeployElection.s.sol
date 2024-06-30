@@ -6,22 +6,20 @@ import {HelperConfig} from "./HelperConfig.s.sol";
 
 contract DeployElection is Script{
     uint256 constant public SAMPLE_REGION_CODE= 400060;
-    function run() public returns(Election , uint256, address){
+    function run() public returns(Election ,  address){
         
         HelperConfig helperConfig = new HelperConfig();
-        (uint256 key , address ownerAddress ) =  helperConfig.run();
-        vm.startBroadcast(key);
-        Election election = new Election(SAMPLE_REGION_CODE);
+        ( , address ownerAddress ) =  helperConfig.run();
+        vm.startBroadcast();
+        Election election = new Election(SAMPLE_REGION_CODE, msg.sender);
         vm.stopBroadcast();
-        return (election , key, ownerAddress);
+        return (election ,  ownerAddress);
     }
 
-    function deployElection(uint256 regionCode) external returns(Election , uint256 , address){
-        HelperConfig helperConfig = new HelperConfig();
-        (uint256 key , address ownerAddress ) =  helperConfig.run();
-        vm.startBroadcast(key);
-        Election election = new Election(regionCode);
+    function deployElection(uint256 regionCode , address adminAddress) external returns(Election , address){
+        vm.startBroadcast();
+        Election election = new Election(regionCode , adminAddress);
         vm.stopBroadcast();
-        return (election , key , ownerAddress);
+        return (election ,  adminAddress);
     }
 }

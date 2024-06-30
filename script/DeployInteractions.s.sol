@@ -6,9 +6,7 @@ import {HelperConfig}from './HelperConfig.s.sol';
 
 contract DeployAddCandidate is Script {
     function run() external returns(AddCandidate){
-        HelperConfig helperConfig = new HelperConfig();
-        (uint256 key ,  ) =  helperConfig.run();
-        vm.startBroadcast(key);
+        vm.startBroadcast();
         AddCandidate addCandidate = new AddCandidate();
         vm.stopBroadcast();
         return (addCandidate);
@@ -17,9 +15,7 @@ contract DeployAddCandidate is Script {
 
 contract DeployVote is Script {
     function run() external returns(Vote){
-        HelperConfig helperConfig = new HelperConfig();
-        (uint256 key ,  ) =  helperConfig.run();
-        vm.startBroadcast(key);
+        vm.startBroadcast();
         Vote vote = new Vote();
         vm.stopBroadcast();
         return (vote);
@@ -28,9 +24,7 @@ contract DeployVote is Script {
 
 contract DeployDeclareWinner is Script {
     function run() external returns(DeclareWinner){
-        HelperConfig helperConfig = new HelperConfig();
-        (uint256 key ,  ) =  helperConfig.run();
-        vm.startBroadcast(key);
+        vm.startBroadcast();
         DeclareWinner declareWinner = new DeclareWinner();
         vm.stopBroadcast();
         return (declareWinner);
@@ -39,9 +33,7 @@ contract DeployDeclareWinner is Script {
 
 contract DeployGetElectionDetails is Script {
     function run() external returns(GetElectionDetails){
-        HelperConfig helperConfig = new HelperConfig();
-        (uint256 key ,  ) =  helperConfig.run();
-        vm.startBroadcast(key);
+        vm.startBroadcast();
         GetElectionDetails getElectionDetails = new GetElectionDetails();
         vm.stopBroadcast();
         return (getElectionDetails);

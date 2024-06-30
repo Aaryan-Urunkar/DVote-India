@@ -1,6 +1,5 @@
 // SPDX-License-Identifier:MIT
 pragma solidity ^0.8.20;
-import {console} from "forge-std/console.sol";
 
 /**  
  * @title An election contract
@@ -54,8 +53,8 @@ contract Election {
     uint256 immutable i_region; 
 
     //constructor
-    constructor(uint256 region){
-        i_owner = msg.sender;
+    constructor(uint256 region , address owner){
+        i_owner = owner;
         s_electionStatus  = ElectionState.OPEN;
         i_region = region;
     }
