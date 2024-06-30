@@ -17,6 +17,7 @@ contract Election {
     error ElectionNotOpen();
     error IllegalTransfer();
     error CandidateDoesNotExist();
+    error VoterNotVotingFromResidentshipRegion();
 
     //Events
     event CandidateAdded(string indexed name , string indexed politicalParty);
@@ -36,6 +37,7 @@ contract Election {
         uint256 birthMonth;
         uint256 birthYear;
         bytes32 aadharNumberHashed; //keccak256 hash
+        uint256 regionOfResidentship;
     }
 
     enum ElectionState {
@@ -49,11 +51,13 @@ contract Election {
     mapping(string => uint256) s_votesPerCandidate;
     ElectionState s_electionStatus;
     uint256[] public s_votesCount;
+    uint256 immutable i_region; 
 
     //constructor
-    constructor(){
+    constructor(uint256 region){
         i_owner = msg.sender;
         s_electionStatus  = ElectionState.OPEN;
+        i_region = region;
     }
 
     //modifiers
@@ -95,9 +99,12 @@ contract Election {
         emit CandidateAdded(candidateName , candidatePoliticalParty);
     }
 
-    function vote(string memory name , uint256 birthDate, uint256 birthMonth, uint256 birthYear , string memory aadharNumber, string memory candidateName) public {
+    function vote(string memory name , uint256 birthDate, uint256 birthMonth, uint256 birthYear , string memory aadharNumber, string memory candidateName , uint256 regionCode) public {
         if(s_electionStatus == ElectionState.ENDED){
             revert ElectionNotOpen();
+        }
+        if(i_region != regionCode){
+            revert VoterNotVotingFromResidentshipRegion();
         }
         uint256 startingIndex=0;
         uint256 noOfCandidates = s_candidates.length;
@@ -115,7 +122,8 @@ contract Election {
             birthDate : birthDate,
             birthMonth : birthMonth,
             birthYear : birthYear,
-            aadharNumberHashed : keccak256(abi.encode(aadharNumber))
+            aadharNumberHashed : keccak256(abi.encode(aadharNumber)),
+            regionOfResidentship : regionCode
         });
         startingIndex=0;
         uint256 votersLength = s_alreadyVoted.length;
@@ -216,5 +224,9 @@ contract Election {
             revert ElectionNotEnded();
         }
         return s_votesCount;
+    }
+
+    function getRegionCode() public view returns(uint256){
+        return i_region;
     }
 }

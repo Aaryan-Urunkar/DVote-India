@@ -11,12 +11,12 @@ contract HelperConfig is Script{
     address public constant ANVIL_PUBLIC_KEY = 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266;
 
     constructor() {
-        if(block.chainid == 31337){ //Anvil localhost
-            deployerKey = DEFAULT_ANVIL_PRIVATE_KEY;
-            publicAddress =  ANVIL_PUBLIC_KEY;
-        } else if(block.chainid == 11155111){ //Sepolia testnet
+        if(block.chainid == 11155111){ //Sepolia testnet
             deployerKey = vm.envUint("PRIVATE_KEY");
             publicAddress = vm.envAddress("SEPOLIA_PUBLIC_KEY");
+        } else { //Default Anvil localhost
+            deployerKey = DEFAULT_ANVIL_PRIVATE_KEY;
+            publicAddress =  ANVIL_PUBLIC_KEY;
         }
     }
 
