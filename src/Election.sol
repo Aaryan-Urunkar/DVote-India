@@ -168,40 +168,31 @@ contract Election {
         uint256[] memory maxVotesArray;
         string[] memory winnerNameArray;
         string[] memory winningPartyArray;
-        if(tie){
-            uint256 noOfTiedCandidates = 0;
-            for(uint256 i=0;i<noOfCandidates;i++){
-                if(getVotesPerCandidate(s_candidates[i].name) == maxVotes){
-                    noOfTiedCandidates++;
-                }
+        uint256 noOfTiedCandidates = 0;
+        for(uint256 i=0;i<noOfCandidates;i++){
+            if(getVotesPerCandidate(s_candidates[i].name) == maxVotes){
+                noOfTiedCandidates++;
             }
-            maxVotesArray = new uint256[](noOfTiedCandidates);
-            winnerNameArray = new string[](noOfTiedCandidates);
-            winningPartyArray = new string[](noOfTiedCandidates);
-            uint256 arraysIndex = 0;
-            //Candidate memory tempCandidate;
-            for(uint256 i=0;i<noOfCandidates;i++){
-                candidate = s_candidates[i];
-                if(getVotesPerCandidate(candidate.name) == maxVotes){
-                    maxVotesArray[arraysIndex] = maxVotes;
-                    winnerNameArray[arraysIndex] = candidate.name;
-                    winningPartyArray[arraysIndex] = candidate.politicalParty;
-                    arraysIndex++;
-                }
+        }
+        maxVotesArray = new uint256[](noOfTiedCandidates);
+        winnerNameArray = new string[](noOfTiedCandidates);
+        winningPartyArray = new string[](noOfTiedCandidates);
+        uint256 arraysIndex = 0;
+        for(uint256 i=0;i<noOfCandidates;i++){
+            candidate = s_candidates[i];
+            if(getVotesPerCandidate(candidate.name) == maxVotes){
+                maxVotesArray[arraysIndex] = maxVotes;
+                winnerNameArray[arraysIndex] = candidate.name;
+                winningPartyArray[arraysIndex] = candidate.politicalParty;
+                arraysIndex++;
             }
+        }
+        if(tie && noOfTiedCandidates > 1){
             emit Tie(winnerNameArray, winningPartyArray);
-            return (winnerNameArray, winningPartyArray , maxVotesArray);
-
         } else {
             emit WinnerDeclared(winnerName , winningParty , maxVotes);
-            maxVotesArray = new uint256[](1);
-            maxVotesArray[0] = maxVotes;
-            winnerNameArray = new string[](1);
-            winnerNameArray[0] = winnerName;
-            winningPartyArray = new string[](1);
-            winningPartyArray[0] = winningParty;
-            return (winnerNameArray , winningPartyArray , maxVotesArray);
         }
+        return (winnerNameArray , winningPartyArray , maxVotesArray);
     }
 
     function getCandidates() view public returns(Candidate[] memory){
