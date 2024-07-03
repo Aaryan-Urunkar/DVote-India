@@ -46,7 +46,8 @@ contract InteractionsTest is Test {
         DeployDeployElection deploydeployElection = new DeployDeployElection();
         DeployElection deployer= deploydeployElection.run();
         // (election , deployerKey  , owner ) = deployer.run();
-        election = deployer.deployElection(SAMPLE_REGION_CODE , msg.sender);
+        address electionAddress = deployer.run(SAMPLE_REGION_CODE , msg.sender);
+        election  = Election(payable(electionAddress));
         console.log(msg.sender);
         console.log(election.getOwner());
     }
