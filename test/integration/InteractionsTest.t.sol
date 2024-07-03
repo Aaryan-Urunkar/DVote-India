@@ -32,8 +32,8 @@ contract InteractionsTest is Test {
     uint256 constant SAMPLE_BIRTH_YEAR=2005;
     uint256 constant public SAMPLE_REGION_CODE= 400060;
 
-    address owner;
-    uint256 deployerKey;
+
+
     AddCandidate addCandidate;
 
     modifier AddingCandidate {
@@ -46,7 +46,7 @@ contract InteractionsTest is Test {
         DeployDeployElection deploydeployElection = new DeployDeployElection();
         DeployElection deployer= deploydeployElection.run();
         // (election , deployerKey  , owner ) = deployer.run();
-        (election ,  owner) = deployer.deployElection(SAMPLE_REGION_CODE , msg.sender);
+        election = deployer.deployElection(SAMPLE_REGION_CODE , msg.sender);
         console.log(msg.sender);
         console.log(election.getOwner());
     }
@@ -139,7 +139,7 @@ contract InteractionsTest is Test {
     function test_GetOwnerReturnsRightAnswerOrWrong() external {
         GetElectionDetails getElectionDetails = new GetElectionDetails();
         address ownerReturned = getElectionDetails.getOwner(address(election));
-        assertEq(owner , ownerReturned);
+        assertEq(msg.sender , ownerReturned);
     }
     
     function test_GetVotersReturnsAllVoters() external AddingCandidate{

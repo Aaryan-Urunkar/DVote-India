@@ -3,7 +3,6 @@ pragma solidity ^0.8.20;
 import {Election} from "../../src/Election.sol";
 import {DeployElection} from "../../script/DeployElection.s.sol";
 import {Test , console} from "forge-std/Test.sol";
-import {HelperConfig} from "../../script/HelperConfig.s.sol";
 import {DeployDeployElection} from "../../script/DeployDeployElection.s.sol";
 
 contract ElectionTest is Test {
@@ -37,10 +36,8 @@ contract ElectionTest is Test {
 
     uint256 constant public SAMPLE_REGION_CODE= 400060;
 
-    address owner;
-
     modifier AddCandidate {
-        vm.prank(owner);
+        vm.prank(msg.sender);
         election.addCandidate(SAMPLE_CANDIDATE_ , SAMPLE_POLITICAL_PARTY_);
         _;
     }
@@ -50,12 +47,14 @@ contract ElectionTest is Test {
         //Write the setup for your tests here
         DeployDeployElection deploydeployElection = new DeployDeployElection();
         DeployElection deployer= deploydeployElection.run();
-        //vm.prank(msg.sender);
-        (election, owner) = deployer.deployElection(SAMPLE_REGION_CODE , msg.sender);
+        // (election, owner) = deployer.deployElection(SAMPLE_REGION_CODE , msg.sender);
+        election = deployer.run(SAMPLE_REGION_CODE , msg.sender);
+        console.log(msg.sender);
+        console.log(election.getOwner());
     }
 
     function test_DeployerIsOwner()external view{
-        assertEq(election.getOwner() , owner);
+        assertEq(election.getOwner() , msg.sender);
     }
 
     function test_InitalElectionStateIsOpen() external view{
@@ -85,7 +84,7 @@ contract ElectionTest is Test {
     //////////////
 
     function test_EndElectionSetsElectionStateEnded() external {
-        vm.prank(owner);
+        vm.prank(msg.sender);
         election.endElection();
         assert(election.getElectionStatus() == Election.ElectionState.ENDED);
     }
@@ -109,15 +108,15 @@ contract ElectionTest is Test {
     }
 
     function test_AddingMultipleCandidatesOfSamePartyProhibited() external AddCandidate{
-        vm.prank(owner);
+        vm.prank(msg.sender);
         vm.expectRevert(Election.PartyAlreadyExists.selector);
         election.addCandidate(SAMPLE_CANDIDATE_2 , SAMPLE_POLITICAL_PARTY_);
     }
 
     function test_AddingCandidateAfterElectionEnded() external {
-        vm.prank(owner);
+        vm.prank(msg.sender);
         election.endElection();
-        vm.prank(owner);
+        vm.prank(msg.sender);
         vm.expectRevert(Election.ElectionNotOpen.selector);
         election.addCandidate(SAMPLE_CANDIDATE_ , SAMPLE_POLITICAL_PARTY_);
     }
@@ -125,7 +124,7 @@ contract ElectionTest is Test {
     function test_AddCandidateEmitsEvent() external {
         vm.expectEmit(true , true , false, false , address(election));
         emit CandidateAdded(SAMPLE_CANDIDATE_ , SAMPLE_POLITICAL_PARTY_);
-        vm.prank(owner);
+        vm.prank(msg.sender);
         election.addCandidate(SAMPLE_CANDIDATE_ , SAMPLE_POLITICAL_PARTY_);
     }
 
@@ -138,7 +137,7 @@ contract ElectionTest is Test {
     //////////
 
     function test_CannotVoteIfElectionEnded() external AddCandidate{
-        vm.prank(owner);
+        vm.prank(msg.sender);
         election.endElection();
         vm.expectRevert(Election.ElectionNotOpen.selector);
         election.vote(SAMPLE_VOTER_1,SAMPLE_BIRTH_DATE,SAMPLE_BIRTH_MONTH,SAMPLE_BIRTH_YEAR,SAMPLE_AADHAR_NUMBER_1,SAMPLE_CANDIDATE_ , SAMPLE_REGION_CODE);
@@ -146,7 +145,7 @@ contract ElectionTest is Test {
 
     function test_CannotVoteForNonExistentCandidate() external AddCandidate{
         string memory nonExistent = "NonExistentCandidate";
-        vm.prank(owner);
+        vm.prank(msg.sender);
         vm.expectRevert(Election.CandidateDoesNotExist.selector);
         election.vote(SAMPLE_VOTER_1,SAMPLE_BIRTH_DATE,SAMPLE_BIRTH_MONTH,SAMPLE_BIRTH_YEAR,SAMPLE_AADHAR_NUMBER_1,nonExistent , SAMPLE_REGION_CODE);
     }
@@ -172,7 +171,7 @@ contract ElectionTest is Test {
         election.vote(SAMPLE_VOTER_2,SAMPLE_BIRTH_DATE,SAMPLE_BIRTH_MONTH,SAMPLE_BIRTH_YEAR,SAMPLE_AADHAR_NUMBER_2,SAMPLE_CANDIDATE_ , SAMPLE_REGION_CODE);
         assertEq(election.getVotesPerCandidate(SAMPLE_CANDIDATE_) , 2);
         
-        vm.prank(owner);
+        vm.prank(msg.sender);
         election.addCandidate( SAMPLE_CANDIDATE_2, SAMPLE_POLITICAL_PARTY_2);
         election.vote(SAMPLE_VOTER_3,SAMPLE_BIRTH_DATE,SAMPLE_BIRTH_MONTH,SAMPLE_BIRTH_YEAR,SAMPLE_AADHAR_NUMBER_3,SAMPLE_CANDIDATE_2 , SAMPLE_REGION_CODE);
         election.vote(SAMPLE_VOTER_4,SAMPLE_BIRTH_DATE,SAMPLE_BIRTH_MONTH,SAMPLE_BIRTH_YEAR,SAMPLE_AADHAR_NUMBER_4,SAMPLE_CANDIDATE_2 , SAMPLE_REGION_CODE);
@@ -204,7 +203,7 @@ contract ElectionTest is Test {
         election.vote(SAMPLE_VOTER_1,SAMPLE_BIRTH_DATE,SAMPLE_BIRTH_MONTH,SAMPLE_BIRTH_YEAR,SAMPLE_AADHAR_NUMBER_1,SAMPLE_CANDIDATE_ , SAMPLE_REGION_CODE);
         election.vote(SAMPLE_VOTER_2,SAMPLE_BIRTH_DATE,SAMPLE_BIRTH_MONTH,SAMPLE_BIRTH_YEAR,SAMPLE_AADHAR_NUMBER_2,SAMPLE_CANDIDATE_ , SAMPLE_REGION_CODE);
     
-        vm.prank(owner);
+        vm.prank(msg.sender);
         election.addCandidate( SAMPLE_CANDIDATE_2, SAMPLE_POLITICAL_PARTY_2);
         election.vote(SAMPLE_VOTER_3,SAMPLE_BIRTH_DATE,SAMPLE_BIRTH_MONTH,SAMPLE_BIRTH_YEAR,SAMPLE_AADHAR_NUMBER_3,SAMPLE_CANDIDATE_2 , SAMPLE_REGION_CODE);
         election.vote(SAMPLE_VOTER_4,SAMPLE_BIRTH_DATE,SAMPLE_BIRTH_MONTH,SAMPLE_BIRTH_YEAR,SAMPLE_AADHAR_NUMBER_4,SAMPLE_CANDIDATE_2 , SAMPLE_REGION_CODE);
@@ -212,7 +211,7 @@ contract ElectionTest is Test {
         vm.expectEmit(true, true , true, false ,address(election));
         emit WinnerDeclared(SAMPLE_CANDIDATE_2 , SAMPLE_POLITICAL_PARTY_2, election.getVotesPerCandidate(SAMPLE_CANDIDATE_2));
 
-        vm.prank(owner);
+        vm.prank(msg.sender);
         (string[] memory name, string[] memory party ,uint256[] memory maxVotes) = election.declareWinner();
         assertEq(keccak256(abi.encode(name[0])) , keccak256(abi.encode(SAMPLE_CANDIDATE_2)));
         assertEq(keccak256(abi.encode(party[0])) , keccak256(abi.encode(SAMPLE_POLITICAL_PARTY_2)));
@@ -222,7 +221,7 @@ contract ElectionTest is Test {
     }
 
     function test_DeclareWinnerEndsElection() external {
-        vm.prank(owner);
+        vm.prank(msg.sender);
         election.declareWinner();
         assert(election.getElectionStatus() == Election.ElectionState.ENDED);
     }
@@ -234,7 +233,7 @@ contract ElectionTest is Test {
     }
 
     function test_WhenTiedTieEventIsEmittedAndAllCandidatesAreReturned() external AddCandidate{
-        vm.prank(owner);
+        vm.prank(msg.sender);
         election.addCandidate(SAMPLE_CANDIDATE_2 , SAMPLE_POLITICAL_PARTY_2);
         election.vote(SAMPLE_VOTER_1 , SAMPLE_BIRTH_DATE , SAMPLE_BIRTH_MONTH , SAMPLE_BIRTH_YEAR , SAMPLE_AADHAR_NUMBER_1 , SAMPLE_CANDIDATE_2 , SAMPLE_REGION_CODE);
         election.vote(SAMPLE_VOTER_2 , SAMPLE_BIRTH_DATE , SAMPLE_BIRTH_MONTH , SAMPLE_BIRTH_YEAR , SAMPLE_AADHAR_NUMBER_2 , SAMPLE_CANDIDATE_ , SAMPLE_REGION_CODE);
@@ -245,7 +244,7 @@ contract ElectionTest is Test {
         string[] memory winningPartiesArray= new string[](election.getCandidates().length);
         winningPartiesArray[0] = SAMPLE_POLITICAL_PARTY_;
         winningPartiesArray[1] = SAMPLE_POLITICAL_PARTY_2;  
-        vm.prank(owner);
+        vm.prank(msg.sender);
         vm.expectEmit(true , true , false, false, address(election));
         emit Tie(winningCandidatesArray , winningPartiesArray);
         

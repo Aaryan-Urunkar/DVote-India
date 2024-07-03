@@ -2,7 +2,6 @@
 pragma solidity ^0.8.20;
 import {Script} from "forge-std/Script.sol";
 import {AddCandidate , Vote , DeclareWinner , GetElectionDetails} from "./Interactions.s.sol";
-import {HelperConfig}from './HelperConfig.s.sol';
 
 contract DeployAddCandidate is Script {
     function run() external returns(AddCandidate){

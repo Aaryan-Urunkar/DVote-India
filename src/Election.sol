@@ -77,7 +77,7 @@ contract Election {
     }
 
     //functions (getters at the end)
-    function addCandidate(string memory candidateName , string memory candidatePoliticalParty) external onlyOwner {
+    function addCandidate(string calldata candidateName , string calldata candidatePoliticalParty) external onlyOwner {
         if(s_electionStatus == ElectionState.ENDED){
             revert ElectionNotOpen();
         }
@@ -98,7 +98,7 @@ contract Election {
         emit CandidateAdded(candidateName , candidatePoliticalParty);
     }
 
-    function vote(string memory name , uint256 birthDate, uint256 birthMonth, uint256 birthYear , string memory aadharNumber, string memory candidateName , uint256 regionCode) public {
+    function vote(string calldata name , uint256 birthDate, uint256 birthMonth, uint256 birthYear , string calldata aadharNumber, string calldata candidateName , uint256 regionCode) public {
         if(s_electionStatus == ElectionState.ENDED){
             revert ElectionNotOpen();
         }
@@ -144,6 +144,7 @@ contract Election {
 
     function declareWinner() public onlyOwner returns(string[] memory, string[] memory , uint256[] memory) {
         endElection();
+        delete s_votesCount;
         string memory winnerName="";
         string memory winningParty="";
         uint256 maxVotes=0;
@@ -151,8 +152,9 @@ contract Election {
         uint256 temp=0;
         uint256 noOfCandidates = s_candidates.length;
         bool tie = false;
+        Candidate memory candidate;
         for(uint256 i = startingIndex ; i < noOfCandidates ;i++){
-            Candidate memory candidate = s_candidates[i];
+            candidate = s_candidates[i];
             temp = getVotesPerCandidate(candidate.name);
             if(temp > maxVotes) {
                 maxVotes = temp;
@@ -163,6 +165,9 @@ contract Election {
             }
             s_votesCount.push(temp);
         }
+        uint256[] memory maxVotesArray;
+        string[] memory winnerNameArray;
+        string[] memory winningPartyArray;
         if(tie){
             uint256 noOfTiedCandidates = 0;
             for(uint256 i=0;i<noOfCandidates;i++){
@@ -170,12 +175,13 @@ contract Election {
                     noOfTiedCandidates++;
                 }
             }
-            uint256[] memory maxVotesArray = new uint256[](noOfTiedCandidates);
-            string[] memory winnerNameArray = new string[](noOfTiedCandidates);
-            string[] memory winningPartyArray = new string[](noOfTiedCandidates);
+            maxVotesArray = new uint256[](noOfTiedCandidates);
+            winnerNameArray = new string[](noOfTiedCandidates);
+            winningPartyArray = new string[](noOfTiedCandidates);
             uint256 arraysIndex = 0;
+            //Candidate memory tempCandidate;
             for(uint256 i=0;i<noOfCandidates;i++){
-                Candidate memory candidate = s_candidates[i];
+                candidate = s_candidates[i];
                 if(getVotesPerCandidate(candidate.name) == maxVotes){
                     maxVotesArray[arraysIndex] = maxVotes;
                     winnerNameArray[arraysIndex] = candidate.name;
@@ -188,11 +194,11 @@ contract Election {
 
         } else {
             emit WinnerDeclared(winnerName , winningParty , maxVotes);
-            uint256[] memory maxVotesArray = new uint256[](1);
+            maxVotesArray = new uint256[](1);
             maxVotesArray[0] = maxVotes;
-            string[] memory winnerNameArray = new string[](1);
+            winnerNameArray = new string[](1);
             winnerNameArray[0] = winnerName;
-            string[] memory winningPartyArray = new string[](1);
+            winningPartyArray = new string[](1);
             winningPartyArray[0] = winningParty;
             return (winnerNameArray , winningPartyArray , maxVotesArray);
         }
