@@ -1,2 +1,2 @@
-DeployElection.s.sol testing sample : 0x6a1f396B1fe99CBC3a95735842d18434cB9074bb (verified on sepolia etherscan)
+DeployElection.s.sol testing sample : 0x7c39Bf405DDD394817E364264F6aC02621A74f8e (verified on sepolia etherscan)
 AddCandidate.s.sol testing sample : 0xb5931D018dC9F77C893BB8EA45D6Dd68404a8514 (verified on sepolia etherscan)
