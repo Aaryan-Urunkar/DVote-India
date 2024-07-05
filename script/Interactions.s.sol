@@ -58,8 +58,8 @@ contract GetElectionDetails is Script{
         return ownerAddress;
     }
 
-    function getVotesPerCandidate(address election , string memory candidateName)public  view returns(uint256){
-        uint256 votes = Election(payable(election)).getVotesPerCandidate(candidateName);
+    function getVotesPerCandidate(address election , string memory candidatePoliticalParty)public  view returns(uint256){
+        uint256 votes = Election(payable(election)).getVotesPerCandidate(candidatePoliticalParty);
         return votes;
     }
 }

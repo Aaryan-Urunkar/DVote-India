@@ -73,7 +73,7 @@ contract InteractionsTest is Test {
         Vote vote = new Vote();
         vm.expectEmit(true, false, false, false, address(election));
         emit VoterAdded( keccak256(abi.encode(SAMPLE_AADHAR_NUMBER_1)) , SAMPLE_CANDIDATE_);
-        vote.vote(address(election), SAMPLE_VOTER_1, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_1, SAMPLE_CANDIDATE_ , SAMPLE_REGION_CODE);
+        vote.vote(address(election), SAMPLE_VOTER_1, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_1, SAMPLE_POLITICAL_PARTY_ , SAMPLE_REGION_CODE);
         assertEq(election.getVoters()[0].name , SAMPLE_VOTER_1);
         assertEq(election.getVoters()[0].aadharNumberHashed , keccak256(abi.encode(SAMPLE_AADHAR_NUMBER_1)));
     }
@@ -81,15 +81,15 @@ contract InteractionsTest is Test {
     function test_AddingCandidateAndVotingFailure1 () external AddingCandidate{
         Vote vote = new Vote();
         vm.expectRevert(Election.CandidateDoesNotExist.selector);
-        vote.vote(address(election), SAMPLE_VOTER_1, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_1, SAMPLE_CANDIDATE_2 , SAMPLE_REGION_CODE);            
+        vote.vote(address(election), SAMPLE_VOTER_1, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_1, SAMPLE_POLITICAL_PARTY_2 , SAMPLE_REGION_CODE);            
     }
 
     function test_AddingCandidateAndVotingFailure2() external AddingCandidate{
         Vote vote = new Vote();
-        vote.vote(address(election), SAMPLE_VOTER_1, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_1, SAMPLE_CANDIDATE_ , SAMPLE_REGION_CODE);
+        vote.vote(address(election), SAMPLE_VOTER_1, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_1, SAMPLE_POLITICAL_PARTY_ , SAMPLE_REGION_CODE);
         addCandidate.addCandidate(address(election), SAMPLE_CANDIDATE_2, SAMPLE_POLITICAL_PARTY_2);
         vm.expectRevert(Election.VoterHasAlreadyVoted.selector);
-        vote.vote(address(election), SAMPLE_VOTER_1, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_1, SAMPLE_CANDIDATE_2 , SAMPLE_REGION_CODE);
+        vote.vote(address(election), SAMPLE_VOTER_1, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_1, SAMPLE_POLITICAL_PARTY_2 , SAMPLE_REGION_CODE);
     }
 
     
@@ -102,11 +102,11 @@ contract InteractionsTest is Test {
     function test_AddingCandidatesAndVotingAndDeclaringWinner() external AddingCandidate{
         addCandidate.addCandidate(address(election),SAMPLE_CANDIDATE_2,SAMPLE_POLITICAL_PARTY_2);
         Vote vote = new Vote();
-        vote.vote(address(election), SAMPLE_VOTER_1, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_1, SAMPLE_CANDIDATE_ , SAMPLE_REGION_CODE);
-        vote.vote(address(election), SAMPLE_VOTER_2, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_2, SAMPLE_CANDIDATE_ , SAMPLE_REGION_CODE);
-        vote.vote(address(election), SAMPLE_VOTER_3, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_3, SAMPLE_CANDIDATE_2 , SAMPLE_REGION_CODE);
-        vote.vote(address(election), SAMPLE_VOTER_4, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_4, SAMPLE_CANDIDATE_2 , SAMPLE_REGION_CODE);
-        vote.vote(address(election), SAMPLE_VOTER_5, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_5, SAMPLE_CANDIDATE_ , SAMPLE_REGION_CODE);
+        vote.vote(address(election), SAMPLE_VOTER_1, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_1, SAMPLE_POLITICAL_PARTY_ , SAMPLE_REGION_CODE);
+        vote.vote(address(election), SAMPLE_VOTER_2, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_2, SAMPLE_POLITICAL_PARTY_ , SAMPLE_REGION_CODE);
+        vote.vote(address(election), SAMPLE_VOTER_3, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_3, SAMPLE_POLITICAL_PARTY_2 , SAMPLE_REGION_CODE);
+        vote.vote(address(election), SAMPLE_VOTER_4, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_4, SAMPLE_POLITICAL_PARTY_2 , SAMPLE_REGION_CODE);
+        vote.vote(address(election), SAMPLE_VOTER_5, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_5, SAMPLE_POLITICAL_PARTY_ , SAMPLE_REGION_CODE);
 
         DeclareWinner declareWinner = new DeclareWinner();
         vm.expectEmit(true , true, true, false, address(election));
@@ -114,16 +114,16 @@ contract InteractionsTest is Test {
         (string[] memory winnerName, string[] memory winningParty, uint256[] memory maxVotes) = declareWinner.declareWinner(address(election) );
         assertEq(winnerName[0] , SAMPLE_CANDIDATE_);
         assertEq(winningParty[0] , SAMPLE_POLITICAL_PARTY_);
-        assertEq(maxVotes[0] , election.getVotesPerCandidate(SAMPLE_CANDIDATE_));
+        assertEq(maxVotes[0] , election.getVotesPerCandidate(SAMPLE_POLITICAL_PARTY_));
     } 
 
     function test_VerifyingAppropriateResultOnTie() external AddingCandidate{
         addCandidate.addCandidate(address(election),SAMPLE_CANDIDATE_2,SAMPLE_POLITICAL_PARTY_2);
         Vote vote = new Vote();
-        vote.vote(address(election), SAMPLE_VOTER_1, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_1, SAMPLE_CANDIDATE_ , SAMPLE_REGION_CODE);
-        vote.vote(address(election), SAMPLE_VOTER_2, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_2, SAMPLE_CANDIDATE_ , SAMPLE_REGION_CODE);
-        vote.vote(address(election), SAMPLE_VOTER_3, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_3, SAMPLE_CANDIDATE_2 , SAMPLE_REGION_CODE);
-        vote.vote(address(election), SAMPLE_VOTER_4, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_4, SAMPLE_CANDIDATE_2 , SAMPLE_REGION_CODE);
+        vote.vote(address(election), SAMPLE_VOTER_1, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_1, SAMPLE_POLITICAL_PARTY_ , SAMPLE_REGION_CODE);
+        vote.vote(address(election), SAMPLE_VOTER_2, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_2, SAMPLE_POLITICAL_PARTY_ , SAMPLE_REGION_CODE);
+        vote.vote(address(election), SAMPLE_VOTER_3, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_3, SAMPLE_POLITICAL_PARTY_2 , SAMPLE_REGION_CODE);
+        vote.vote(address(election), SAMPLE_VOTER_4, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_4, SAMPLE_POLITICAL_PARTY_2 , SAMPLE_REGION_CODE);
     
         DeclareWinner declareWinner = new DeclareWinner();
         (string[] memory winningCandidates, string[] memory winningParties, uint256[] memory maxVotesArray) = declareWinner.declareWinner(address(election) );
@@ -146,14 +146,14 @@ contract InteractionsTest is Test {
     function test_GetVotersReturnsAllVoters() external AddingCandidate{
         GetElectionDetails getElectionDetails = new GetElectionDetails();
         Vote vote = new Vote();
-        vote.vote(address(election), SAMPLE_VOTER_1, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_1, SAMPLE_CANDIDATE_ , SAMPLE_REGION_CODE);
-        vote.vote(address(election), SAMPLE_VOTER_2, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_2, SAMPLE_CANDIDATE_ , SAMPLE_REGION_CODE);
+        vote.vote(address(election), SAMPLE_VOTER_1, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_1, SAMPLE_POLITICAL_PARTY_ , SAMPLE_REGION_CODE);
+        vote.vote(address(election), SAMPLE_VOTER_2, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_2, SAMPLE_POLITICAL_PARTY_ , SAMPLE_REGION_CODE);
         Election.Voter[] memory voters = getElectionDetails.getVoters(address(election));
         assertEq(voters.length ,2);
         assertEq(voters[0].name , SAMPLE_VOTER_1);
         assertEq(voters[0].regionOfResidentship , SAMPLE_REGION_CODE);
         assertEq(voters[0].aadharNumberHashed , keccak256(abi.encode(SAMPLE_AADHAR_NUMBER_1)));
-        assertEq(getElectionDetails.getVotesPerCandidate(address(election) , SAMPLE_CANDIDATE_) ,2);
+        assertEq(getElectionDetails.getVotesPerCandidate(address(election) , SAMPLE_POLITICAL_PARTY_) ,2);
     }
 
     function test_GetElectionCandidates() external AddingCandidate{
@@ -166,7 +166,7 @@ contract InteractionsTest is Test {
         GetElectionDetails getElectionDetails = new GetElectionDetails();
         assert(getElectionDetails.getElectionStatus(address(election)) == election.getElectionStatus());
         DeclareWinner declareWinner = new DeclareWinner();
-        (, ,uint256[] memory mva) = declareWinner.declareWinner(address(election) );
+        declareWinner.declareWinner(address(election) );
         assert(getElectionDetails.getElectionStatus(address(election)) == election.getElectionStatus());
     }
 
@@ -174,11 +174,11 @@ contract InteractionsTest is Test {
         GetElectionDetails getElectionDetails = new GetElectionDetails();
         addCandidate.addCandidate(address(election),SAMPLE_CANDIDATE_2,SAMPLE_POLITICAL_PARTY_2);
         Vote vote = new Vote();
-        vote.vote(address(election), SAMPLE_VOTER_1, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_1, SAMPLE_CANDIDATE_ , SAMPLE_REGION_CODE);
-        vote.vote(address(election), SAMPLE_VOTER_2, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_2, SAMPLE_CANDIDATE_ , SAMPLE_REGION_CODE);
-        vote.vote(address(election), SAMPLE_VOTER_3, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_3, SAMPLE_CANDIDATE_2 , SAMPLE_REGION_CODE);
-        vote.vote(address(election), SAMPLE_VOTER_4, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_4, SAMPLE_CANDIDATE_2 , SAMPLE_REGION_CODE);
-        vote.vote(address(election), SAMPLE_VOTER_5, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_5, SAMPLE_CANDIDATE_ , SAMPLE_REGION_CODE);
+        vote.vote(address(election), SAMPLE_VOTER_1, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_1, SAMPLE_POLITICAL_PARTY_ , SAMPLE_REGION_CODE);
+        vote.vote(address(election), SAMPLE_VOTER_2, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_2, SAMPLE_POLITICAL_PARTY_ , SAMPLE_REGION_CODE);
+        vote.vote(address(election), SAMPLE_VOTER_3, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_3, SAMPLE_POLITICAL_PARTY_2 , SAMPLE_REGION_CODE);
+        vote.vote(address(election), SAMPLE_VOTER_4, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_4, SAMPLE_POLITICAL_PARTY_2 , SAMPLE_REGION_CODE);
+        vote.vote(address(election), SAMPLE_VOTER_5, SAMPLE_BIRTH_DATE, SAMPLE_BIRTH_MONTH, SAMPLE_BIRTH_YEAR, SAMPLE_AADHAR_NUMBER_5, SAMPLE_POLITICAL_PARTY_ , SAMPLE_REGION_CODE);
         DeclareWinner declareWinner = new DeclareWinner();
         (, ,uint256[] memory mva) = declareWinner.declareWinner(address(election) );
         assertEq(mva[0] ,3);

@@ -94,11 +94,11 @@ contract Election {
             name:candidateName ,
             politicalParty : candidatePoliticalParty
         }));
-        s_votesPerCandidate[candidateName] = 0;
+        s_votesPerCandidate[candidatePoliticalParty] = 0;
         emit CandidateAdded(candidateName , candidatePoliticalParty);
     }
 
-    function vote(string calldata name , uint256 birthDate, uint256 birthMonth, uint256 birthYear , string calldata aadharNumber, string calldata candidateName , uint256 regionCode) public {
+    function vote(string calldata name , uint256 birthDate, uint256 birthMonth, uint256 birthYear , string calldata aadharNumber, string calldata candidateParty , uint256 regionCode) public {
         if(s_electionStatus == ElectionState.ENDED){
             revert ElectionNotOpen();
         }
@@ -107,13 +107,13 @@ contract Election {
         }
         uint256 startingIndex=0;
         uint256 noOfCandidates = s_candidates.length;
-        bool candidateExists = false;
+        bool candidatePoliticalPartyExists = false;
         for(uint256 i = startingIndex ; i<noOfCandidates ;i++){
-            if(keccak256(bytes(candidateName)) == keccak256(bytes(s_candidates[i].name))){
-                candidateExists = true;
+            if(keccak256(bytes(candidateParty)) == keccak256(bytes(s_candidates[i].politicalParty))){
+                candidatePoliticalPartyExists = true;
             }
         }
-        if(!candidateExists){
+        if(!candidatePoliticalPartyExists){
             revert CandidateDoesNotExist();
         }
         Voter memory newVoter = Voter({
@@ -134,7 +134,7 @@ contract Election {
             }
         }
         s_alreadyVoted.push(newVoter);
-        s_votesPerCandidate[candidateName] +=1; //Vote anonymity is maintained
+        s_votesPerCandidate[candidateParty] +=1; //Vote anonymity is maintained
         emit VoterAdded( newVoter.aadharNumberHashed , newVoter.name );
     }
 
@@ -155,7 +155,7 @@ contract Election {
         Candidate memory candidate;
         for(uint256 i = startingIndex ; i < noOfCandidates ;i++){
             candidate = s_candidates[i];
-            temp = getVotesPerCandidate(candidate.name);
+            temp = getVotesPerCandidate(candidate.politicalParty);
             if(temp > maxVotes) {
                 maxVotes = temp;
                 winnerName = candidate.name;
@@ -170,7 +170,7 @@ contract Election {
         string[] memory winningPartyArray;
         uint256 noOfTiedCandidates = 0;
         for(uint256 i=0;i<noOfCandidates;i++){
-            if(getVotesPerCandidate(s_candidates[i].name) == maxVotes){
+            if(getVotesPerCandidate( s_candidates[i].politicalParty) == maxVotes){
                 noOfTiedCandidates++;
             }
         }
@@ -180,7 +180,7 @@ contract Election {
         uint256 arraysIndex = 0;
         for(uint256 i=0;i<noOfCandidates;i++){
             candidate = s_candidates[i];
-            if(getVotesPerCandidate(candidate.name) == maxVotes){
+            if(getVotesPerCandidate(candidate.politicalParty) == maxVotes){
                 maxVotesArray[arraysIndex] = maxVotes;
                 winnerNameArray[arraysIndex] = candidate.name;
                 winningPartyArray[arraysIndex] = candidate.politicalParty;
@@ -211,8 +211,8 @@ contract Election {
         return i_owner;
     }
 
-    function getVotesPerCandidate(string memory candidateName) view public returns(uint256){
-        return s_votesPerCandidate[candidateName];
+    function getVotesPerCandidate(string memory candidateParty) view public returns(uint256){
+        return s_votesPerCandidate[candidateParty];
     }
 
     function getVotesCount() view public returns(uint256[] memory){
