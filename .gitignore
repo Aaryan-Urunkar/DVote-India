@@ -1,15 +1,57 @@
-# Compiler files
-cache/
-out/
+# Ignore build output
+build/
+dist/
 
-# Ignores development broadcast logs
-!/broadcast
-/broadcast/*/31337/
-/broadcast/**/dry-run/
-coverage.txt
-broadcast/
-# Docs
-docs/
+# Ignore dependencies
+node_modules/
+vendor/
 
-# Dotenv file
+# Ignore IDE and editor files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Ignore logs and temporary files
+*.log
+*.tmp
+
+# Ignore compiled binaries
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Ignore package lock files
+package-lock.json
+yarn.lock
+
+# Ignore environment-specific files
 .env
+.env.local
+.env.*.local
+.env.test
+.env.production
+
+# Ignore sensitive or personal information
+secrets.txt
+credentials.json
+
+# Ignore backup files
+*.bak
+*.swp
+*.~lock.*
+
+# Ignore miscellaneous files
+.DS_Store
+Thumbs.db
+
+# Ignore Forge build output
+forge/build/
+
+# Ignore Solidity build output
+solidity/build/
+
+cache
+
+out

@@ -6,8 +6,10 @@ import {DeployElection} from "../../script/DeployElection.s.sol";
 import {Election} from "../../src/Election.sol";
 import {DeployDeployElection} from "../../script/DeployDeployElection.s.sol";
 
-contract InteractionsTest is Test {
 
+
+contract InteractionsTest is Test {
+  
     event VoterAdded(bytes32 indexed aadharNumberHashed , string name);
     event WinnerDeclared(string indexed winningCandidate , string indexed winningParty , uint256 maxVotes);
 
@@ -187,4 +189,19 @@ contract InteractionsTest is Test {
         assertEq(votesCount[0] , 3);
         assertEq(votesCount[1] , 2);
     }
+            // owner
+        function test_OwnerIsSetCorrectly() external {
+            GetElectionDetails getElectionDetails = new GetElectionDetails();
+            address ownerReturned = getElectionDetails.getOwner(address(election));
+            assertEq(ownerReturned, msg.sender);
+        }
+
+        //incrementation checks
+        function test_NumberOfCandidatesIncremented() external AddingCandidate {
+            assertEq(election.getCandidates().length, 1);
+            addCandidate.addCandidate(address(election), SAMPLE_CANDIDATE_2, SAMPLE_POLITICAL_PARTY_2);
+            assertEq(election.getCandidates().length, 2);
+        }
+
+       
 }
