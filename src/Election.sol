@@ -29,12 +29,6 @@ contract Election {
         bytes32 politicalPartyHashed;
     }
 
-    struct Voter {
-        bytes32 nameHashed;
-        bytes32 aadharNumberHashed; // keccak256 hash
-        uint256 regionOfResidentship;
-    }
-
     enum ElectionState {
         OPEN,
         ENDED
@@ -47,6 +41,7 @@ contract Election {
     ElectionState public s_electionStatus;
     uint256 public immutable i_region;
     address public immutable i_owner;
+    uint256 public s_voterTurnout;
 
     // Constructor
     constructor(uint256 _region, address _owner) {
@@ -97,9 +92,9 @@ contract Election {
         uint256 regionCode
     ) external onlyWhenOpen {
         if (i_region != regionCode) revert VoterNotVotingFromResidentshipRegion();
-
+        uint256 length = s_candidates.length;
         bool candidateExists = false;
-        for (uint256 i = 0; i < s_candidates.length; i++) {
+        for (uint256 i = 0; i < length; i++) {
             if (s_candidates[i].politicalPartyHashed == candidatePartyHashed) {
                 candidateExists = true;
                 break;
@@ -110,7 +105,7 @@ contract Election {
 
         s_alreadyVoted[aadharNumberHashed] = true;
         s_votesPerCandidate[candidatePartyHashed]++;
-
+        s_voterTurnout++;
         emit VoterAdded(aadharNumberHashed, nameHashed);
         emit Voted(aadharNumberHashed, candidatePartyHashed);
     }
@@ -148,9 +143,9 @@ contract Election {
                 tie = true;
             }
         }
-
+        uint256 length = s_candidates.length;
         uint256 noOfTiedCandidates = 0;
-        for (uint256 i = 0; i < s_candidates.length; i++) {
+        for (uint256 i = 0; i < length; i++) {
             if (s_votesPerCandidate[s_candidates[i].politicalPartyHashed] == maxVotes) {
                 noOfTiedCandidates++;
             }
@@ -161,7 +156,7 @@ contract Election {
         bytes32[] memory winningPartyArray = new bytes32[](noOfTiedCandidates);
         uint256 arraysIndex = 0;
 
-        for (uint256 i = 0; i < s_candidates.length; i++) {
+        for (uint256 i = 0; i < length; i++) {
             if (s_votesPerCandidate[s_candidates[i].politicalPartyHashed] == maxVotes) {
                 maxVotesArray[arraysIndex] = bytes32(maxVotes);
                 winnerNameArray[arraysIndex] = s_candidates[i].nameHashed;
@@ -219,4 +214,13 @@ contract Election {
     function getOwner() external view returns (address) {
         return i_owner;
     }
+
+    /**
+     * @notice Gets the total voter turnout of the election at a given moment
+     * @return Returns the total voter turnout as a uint256
+     */
+    function getVoterTurnout() external view returns(uint256) {
+        return s_voterTurnout;
+    }
+
 }

@@ -20,21 +20,14 @@ contract Handler is Test {
 
     function Vote(
         uint256 _regionSeed,
-        string calldata name,
-        uint256 birthDate,
-        uint256 birthMonth,
-        uint256 birthYear,
-        string calldata aadharNumber,
-        string calldata candidateParty
+        bytes32 name,
+        bytes32 aadharNumber,
+        bytes32 candidateParty
     ) public {
-        birthDate = bound(birthDate , 1, 31);
-        birthMonth = bound(birthMonth , 1, 12);
-        birthYear = bound(birthYear, 1947, 2006);
-
         uint256 voterRegion= _getRegionFromSeed(_regionSeed);
         vm.prank(OWNER);
-        election.addCandidate(string(abi.encodePacked(candidateParty)),candidateParty);
-        election.vote( name, birthDate , birthMonth , birthYear , aadharNumber , candidateParty , voterRegion );
+        election.addCandidate(bytes32(abi.encodePacked(candidateParty)),bytes32(candidateParty));
+        election.vote( bytes32(name), bytes32(aadharNumber) , bytes32(candidateParty) , voterRegion );
         votes_count++;
     }
 

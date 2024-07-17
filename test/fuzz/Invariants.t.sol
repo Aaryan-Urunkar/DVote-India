@@ -34,9 +34,9 @@ contract Invariants is StdInvariant , Test {
     */
     function invariant_noVotesFromCandidatesOfOtherRegions()external view{
         bool allCandidatesFromCorrectRegion = true;
-        Election.Voter[] memory voters = election.getVoters();
-        uint256 length = voters.length;
-        Election.Voter memory temp;
+        //Election.Voter[] memory voters = election.getVoters();
+        uint256 length = election.getVoterTurnout();
+        // Election.Voter memory temp;
         for(uint256 i = 0 ; i<length ; i++){
             temp = voters[i];
             if(temp.regionOfResidentship != SAMPLE_REGION_CODE){
