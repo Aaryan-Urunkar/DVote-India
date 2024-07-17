@@ -41,28 +41,28 @@ contract Election {
     }
 
     // State variables
-    Candidate[] public candidates;
-    mapping(bytes32 => bool) private alreadyVoted;
-    mapping(bytes32 => uint256) public votesPerCandidate;
-    ElectionState public electionStatus;
-    uint256 public immutable region;
-    address public immutable owner;
+    Candidate[] public s_candidates;
+    mapping(bytes32 => bool) private s_alreadyVoted;
+    mapping(bytes32 => uint256) public s_votesPerCandidate;
+    ElectionState public s_electionStatus;
+    uint256 public immutable i_region;
+    address public immutable i_owner;
 
     // Constructor
     constructor(uint256 _region, address _owner) {
-        owner = _owner;
-        electionStatus = ElectionState.OPEN;
-        region = _region;
+        i_owner = _owner;
+        s_electionStatus = ElectionState.OPEN;
+        i_region = _region;
     }
 
     // Modifiers
     modifier onlyOwner() {
-        if (msg.sender != owner) revert NotOwner();
+        if (msg.sender != i_owner) revert NotOwner();
         _;
     }
 
     modifier onlyWhenOpen() {
-        if (electionStatus != ElectionState.OPEN) revert ElectionNotOpen();
+        if (s_electionStatus != ElectionState.OPEN) revert ElectionNotOpen();
         _;
     }
 
@@ -73,12 +73,12 @@ contract Election {
      * @param candidatePoliticalPartyHashed Hashed political party of the candidate
      */
     function addCandidate(bytes32 candidateNameHashed, bytes32 candidatePoliticalPartyHashed) external onlyOwner onlyWhenOpen {
-        for (uint256 i = 0; i < candidates.length; i++) {
-            if (candidates[i].politicalPartyHashed == candidatePoliticalPartyHashed) revert PartyAlreadyExists();
+        for (uint256 i = 0; i < s_candidates.length; i++) {
+            if (s_candidates[i].politicalPartyHashed == candidatePoliticalPartyHashed) revert PartyAlreadyExists();
         }
 
-        candidates.push(Candidate(candidateNameHashed, candidatePoliticalPartyHashed));
-        votesPerCandidate[candidatePoliticalPartyHashed] = 0;
+        s_candidates.push(Candidate(candidateNameHashed, candidatePoliticalPartyHashed));
+        s_votesPerCandidate[candidatePoliticalPartyHashed] = 0;
 
         emit CandidateAdded(candidateNameHashed, candidatePoliticalPartyHashed);
     }
@@ -96,20 +96,20 @@ contract Election {
         bytes32 candidatePartyHashed,
         uint256 regionCode
     ) external onlyWhenOpen {
-        if (region != regionCode) revert VoterNotVotingFromResidentshipRegion();
+        if (i_region != regionCode) revert VoterNotVotingFromResidentshipRegion();
 
         bool candidateExists = false;
-        for (uint256 i = 0; i < candidates.length; i++) {
-            if (candidates[i].politicalPartyHashed == candidatePartyHashed) {
+        for (uint256 i = 0; i < s_candidates.length; i++) {
+            if (s_candidates[i].politicalPartyHashed == candidatePartyHashed) {
                 candidateExists = true;
                 break;
             }
         }
         if (!candidateExists) revert CandidateDoesNotExist();
-        if (alreadyVoted[aadharNumberHashed]) revert VoterHasAlreadyVoted();
+        if (s_alreadyVoted[aadharNumberHashed]) revert VoterHasAlreadyVoted();
 
-        alreadyVoted[aadharNumberHashed] = true;
-        votesPerCandidate[candidatePartyHashed]++;
+        s_alreadyVoted[aadharNumberHashed] = true;
+        s_votesPerCandidate[candidatePartyHashed]++;
 
         emit VoterAdded(aadharNumberHashed, nameHashed);
         emit Voted(aadharNumberHashed, candidatePartyHashed);
@@ -119,7 +119,7 @@ contract Election {
      * @notice Ends the election
      */
     function endElection() external onlyOwner onlyWhenOpen {
-        electionStatus = ElectionState.ENDED;
+        s_electionStatus = ElectionState.ENDED;
         emit ElectionEnded();
     }
 
@@ -130,19 +130,19 @@ contract Election {
      * @return maxVotesArray Array of max votes
      */
     function declareWinner() external onlyOwner returns (bytes32[] memory, bytes32[] memory, bytes32[] memory) {
-        if (electionStatus != ElectionState.ENDED) revert ElectionNotEnded();
+        if (s_electionStatus != ElectionState.ENDED) revert ElectionNotEnded();
 
         bytes32 winnerNameHashed;
         bytes32 winningPartyHashed;
         uint256 maxVotes = 0;
         bool tie = false;
 
-        for (uint256 i = 0; i < candidates.length; i++) {
-            uint256 temp = votesPerCandidate[candidates[i].politicalPartyHashed];
+        for (uint256 i = 0; i < s_candidates.length; i++) {
+            uint256 temp = s_votesPerCandidate[s_candidates[i].politicalPartyHashed];
             if (temp > maxVotes) {
                 maxVotes = temp;
-                winnerNameHashed = candidates[i].nameHashed;
-                winningPartyHashed = candidates[i].politicalPartyHashed;
+                winnerNameHashed = s_candidates[i].nameHashed;
+                winningPartyHashed = s_candidates[i].politicalPartyHashed;
                 tie = false;
             } else if (temp == maxVotes) {
                 tie = true;
@@ -150,8 +150,8 @@ contract Election {
         }
 
         uint256 noOfTiedCandidates = 0;
-        for (uint256 i = 0; i < candidates.length; i++) {
-            if (votesPerCandidate[candidates[i].politicalPartyHashed] == maxVotes) {
+        for (uint256 i = 0; i < s_candidates.length; i++) {
+            if (s_votesPerCandidate[s_candidates[i].politicalPartyHashed] == maxVotes) {
                 noOfTiedCandidates++;
             }
         }
@@ -161,11 +161,11 @@ contract Election {
         bytes32[] memory winningPartyArray = new bytes32[](noOfTiedCandidates);
         uint256 arraysIndex = 0;
 
-        for (uint256 i = 0; i < candidates.length; i++) {
-            if (votesPerCandidate[candidates[i].politicalPartyHashed] == maxVotes) {
+        for (uint256 i = 0; i < s_candidates.length; i++) {
+            if (s_votesPerCandidate[s_candidates[i].politicalPartyHashed] == maxVotes) {
                 maxVotesArray[arraysIndex] = bytes32(maxVotes);
-                winnerNameArray[arraysIndex] = candidates[i].nameHashed;
-                winningPartyArray[arraysIndex] = candidates[i].politicalPartyHashed;
+                winnerNameArray[arraysIndex] = s_candidates[i].nameHashed;
+                winningPartyArray[arraysIndex] = s_candidates[i].politicalPartyHashed;
                 arraysIndex++;
             }
         }
@@ -184,7 +184,7 @@ contract Election {
      * @return Array of candidates
      */
     function getCandidates() external view returns (Candidate[] memory) {
-        return candidates;
+        return s_candidates;
     }
 
     /**
@@ -192,7 +192,7 @@ contract Election {
      * @return ElectionState Election status
      */
     function getElectionStatus() external view returns (ElectionState) {
-        return electionStatus;
+        return s_electionStatus;
     }
 
     /**
@@ -201,7 +201,7 @@ contract Election {
      * @return uint256 Number of votes
      */
     function getVotesPerCandidate(bytes32 candidatePartyHashed) external view returns (uint256) {
-        return votesPerCandidate[candidatePartyHashed];
+        return s_votesPerCandidate[candidatePartyHashed];
     }
 
     /**
@@ -209,7 +209,7 @@ contract Election {
      * @return uint256 Region code
      */
     function getRegion() external view returns (uint256) {
-        return region;
+        return i_region;
     }
 
     /**
@@ -217,6 +217,6 @@ contract Election {
      * @return Address of the owner
      */
     function getOwner() external view returns (address) {
-        return owner;
+        return i_owner;
     }
 }
