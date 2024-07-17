@@ -19,8 +19,9 @@ contract Election {
     event CandidateAdded(bytes32 indexed nameHashed, bytes32 indexed politicalPartyHashed);
     event VoterAdded(bytes32 indexed aadharNumberHashed, bytes32 indexed nameHashed);
     event WinnerDeclared(bytes32 indexed winningCandidateHashed, bytes32 indexed winningPartyHashed, uint256 maxVotes);
-    event Tie(bytes32[] indexed winningCandidatesHashed, bytes32[] indexed winningPartiesHashed);
+    event Tie(bytes32[] winningCandidatesHashed, bytes32[] winningPartiesHashed);
     event ElectionEnded();
+    event Voted(bytes32 indexed voterHashed, bytes32 indexed candidatePartyHashed);
 
     // Type declarations
     struct Candidate {
@@ -30,9 +31,6 @@ contract Election {
 
     struct Voter {
         bytes32 nameHashed;
-        uint256 birthDate;
-        uint256 birthMonth;
-        uint256 birthYear;
         bytes32 aadharNumberHashed; // keccak256 hash
         uint256 regionOfResidentship;
     }
@@ -45,10 +43,10 @@ contract Election {
     // State variables
     Candidate[] public candidates;
     mapping(bytes32 => bool) private alreadyVoted;
-    address public immutable owner;
     mapping(bytes32 => uint256) public votesPerCandidate;
     ElectionState public electionStatus;
     uint256 public immutable region;
+    address public immutable owner;
 
     // Constructor
     constructor(uint256 _region, address _owner) {
@@ -63,15 +61,18 @@ contract Election {
         _;
     }
 
+    modifier onlyWhenOpen() {
+        if (electionStatus != ElectionState.OPEN) revert ElectionNotOpen();
+        _;
+    }
+
     // Functions
     /**
      * @notice Adds a new candidate to the election
      * @param candidateNameHashed Hashed name of the candidate
      * @param candidatePoliticalPartyHashed Hashed political party of the candidate
      */
-    function addCandidate(bytes32 candidateNameHashed, bytes32 candidatePoliticalPartyHashed) external onlyOwner {
-        if (electionStatus != ElectionState.OPEN) revert ElectionNotOpen();
-
+    function addCandidate(bytes32 candidateNameHashed, bytes32 candidatePoliticalPartyHashed) external onlyOwner onlyWhenOpen {
         for (uint256 i = 0; i < candidates.length; i++) {
             if (candidates[i].politicalPartyHashed == candidatePoliticalPartyHashed) revert PartyAlreadyExists();
         }
@@ -94,8 +95,7 @@ contract Election {
         bytes32 aadharNumberHashed,
         bytes32 candidatePartyHashed,
         uint256 regionCode
-    ) external {
-        if (electionStatus != ElectionState.OPEN) revert ElectionNotOpen();
+    ) external onlyWhenOpen {
         if (region != regionCode) revert VoterNotVotingFromResidentshipRegion();
 
         bool candidateExists = false;
@@ -112,13 +112,13 @@ contract Election {
         votesPerCandidate[candidatePartyHashed]++;
 
         emit VoterAdded(aadharNumberHashed, nameHashed);
+        emit Voted(aadharNumberHashed, candidatePartyHashed);
     }
 
     /**
      * @notice Ends the election
      */
-    function endElection() external onlyOwner {
-        if (electionStatus != ElectionState.OPEN) revert ElectionNotOpen();
+    function endElection() external onlyOwner onlyWhenOpen {
         electionStatus = ElectionState.ENDED;
         emit ElectionEnded();
     }
@@ -196,14 +196,6 @@ contract Election {
     }
 
     /**
-     * @notice Gets the owner of the contract
-     * @return Address of the owner
-     */
-    function getOwner() external view returns (address) {
-        return owner;
-    }
-
-    /**
      * @notice Gets the votes per candidate
      * @param candidatePartyHashed Hashed political party of the candidate
      * @return uint256 Number of votes
@@ -218,5 +210,13 @@ contract Election {
      */
     function getRegion() external view returns (uint256) {
         return region;
+    }
+
+    /**
+     * @notice Gets the owner of the contract
+     * @return Address of the owner
+     */
+    function getOwner() external view returns (address) {
+        return owner;
     }
 }
