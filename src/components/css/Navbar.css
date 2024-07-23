@@ -1,0 +1,70 @@
+.nav_container{
+    height:6vh;
+    background-color : #d4941c;
+    width : 100vw;
+    /* border-bottom: 0.5rem solid #107f24;  */
+    border-bottom: 0.5rem solid #03013c;
+    z-index: 1;
+
+    position: absolute;
+    top:0;
+    overflow: hidden;
+}
+
+.nav_text {
+
+    font-family: "Work Sans", sans-serif;
+    /* font-optical-sizing: auto; */
+    font-weight: 500;
+    font-style: normal;
+
+    display: inline-block;
+    margin-top: 1.2%;
+    margin-left:4%;
+    text-decoration: none;
+    
+}
+
+
+.dapp_title{
+    margin-right: 50%;
+    margin-left:4%;
+}
+
+.DVote {
+    font-family: 'Ubuntu Mono';
+    font-weight: bold;
+    font-size: 1.8rem;
+    transition: color 0.3s;
+}
+.DVote:hover {
+    color: rgb(232, 213, 188);
+}
+
+.India{
+    font-family:'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+    font-size:1.8rem;
+    font-weight :bold;
+    font-style: italic;
+
+    background: -webkit-linear-gradient(120deg,#530006, #037a15e5);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.nav_container a , .nav_container a:active , .nav_container a:focus{
+    display: inline-block;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.5s ;
+}
+
+.nav_container a:hover {
+    /* text-decoration: underline ; */
+    background-color: #9e6c10;
+    border-radius:0.4rem;
+    padding: 0.2rem;
+    transform: scale(1.1);
+    font-weight: bolder;
+    color: bisque;
+}
