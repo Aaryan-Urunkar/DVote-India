@@ -1,23 +1,40 @@
 import React from 'react';
+import { Button, List, ListItem, ListItemText, Paper, Typography } from '@mui/material';
+import { styled } from '@mui/system';
+
+const PaperStyled = styled(Paper)({
+    padding: '16px',
+    marginBottom: '16px',
+});
+
+const ListStyled = styled(List)({
+    marginTop: '16px',
+});
 
 const CandidateList = ({ candidates, voteForCandidate }) => {
     return (
-        <div>
-            <h2>Candidates</h2>
-            {candidates.length > 0 ? (
-                candidates.map((candidate, index) => (
-                    <div key={index}>
-                        <p>Candidate Name: {candidate.name}</p>
-                        <p>Party: {candidate.party}</p>
-                        <button onClick={() => voteForCandidate(candidate.name, candidate.party)}>
+        <PaperStyled>
+            <Typography variant="h6" gutterBottom>
+                Candidate List
+            </Typography>
+            <ListStyled>
+                {candidates.map((candidate, index) => (
+                    <ListItem key={index} divider>
+                        <ListItemText
+                            primary={candidate.name}
+                            secondary={`Party: ${candidate.party}`}
+                        />
+                        <Button
+                            variant="contained"
+                            color="primary"
+                            onClick={() => voteForCandidate(candidate.party)}
+                        >
                             Vote
-                        </button>
-                    </div>
-                ))
-            ) : (
-                <p>No candidates available.</p>
-            )}
-        </div>
+                        </Button>
+                    </ListItem>
+                ))}
+            </ListStyled>
+        </PaperStyled>
     );
 };
 

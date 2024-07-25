@@ -2,7 +2,28 @@ import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import ElectionABI from './ElectionABI.json';
 import CandidateList from './CandidateList';
-import { keccak256, toUtf8Bytes } from 'ethers';
+import { Button, TextField, Typography, Container, Paper, CircularProgress, Alert } from '@mui/material';
+import { styled } from '@mui/system';
+
+const ContainerStyled = styled(Container)({
+    marginTop: '16px',
+    padding: '16px',
+});
+
+const PaperStyled = styled(Paper)({
+    padding: '16px',
+    marginBottom: '16px',
+    textAlign: 'center',
+});
+
+const ButtonStyled = styled(Button)({
+    margin: '8px',
+});
+
+const InputStyled = styled(TextField)({
+    margin: '8px',
+    width: '100%',
+});
 
 const VoterDashboard = ({ electionAddress }) => {
     const [account, setAccount] = useState(null);
@@ -47,8 +68,8 @@ const VoterDashboard = ({ electionAddress }) => {
             console.log('Raw candidate data:', candidateList);
 
             const mappedCandidates = candidateList.map(candidate => ({
-                name: candidate[0],
-                party: candidate[1],
+                name: candidate.name,
+                party: candidate.politicalParty,
             }));
 
             console.log('Candidates fetched:', mappedCandidates);
@@ -61,48 +82,61 @@ const VoterDashboard = ({ electionAddress }) => {
         }
     };
 
-    const voteForCandidate = async (candidateName, candidateParty) => {
-      if (!account || !voterName || !aadharNumber) return alert('Please fill in all details and connect to MetaMask first.');
-      const provider = new ethers.BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const electionContract = new ethers.Contract(electionAddress, ElectionABI, signer);
-  
-      try {
-          setLoading(true);
-          
-          const tx = await electionContract.vote(voterName, aadharNumber, candidateParty);
-          await tx.wait();
-  
-          alert('Vote cast successfully!');
-      } catch (error) {
-          console.error('Error casting vote:', error);
-          setError('Error casting vote');
-      } finally {
-          setLoading(false);
-      }
-  };
-  
+    const voteForCandidate = async (candidateParty) => {
+        if (!account || !voterName || !aadharNumber) return alert('Please fill in all details and connect to MetaMask first.');
+        const provider = new ethers.BrowserProvider(window.ethereum);
+        const signer = await provider.getSigner();
+        const electionContract = new ethers.Contract(electionAddress, ElectionABI, signer);
+
+        try {
+            setLoading(true);
+            
+            const tx = await electionContract.vote(voterName, aadharNumber, candidateParty);
+            await tx.wait();
+
+            alert('Vote cast successfully!');
+        } catch (error) {
+            console.error('Error casting vote:', error);
+            setError('Error casting vote');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     return (
-        <div>
-            <h1>Voter Dashboard</h1>
-            <button onClick={connectToMetaMask} disabled={loading}>
-                {account ? `Connected: ${account.slice(0, 6)}...${account.slice(-4)}` : 'Connect to MetaMask'}
-            </button>
-            {loading && <p>Loading...</p>}
-            {error && <p style={{ color: 'red' }}>{error}</p>}
-            <div>
-                <label>
-                    Name:
-                    <input type="text" value={voterName} onChange={(e) => setVoterName(e.target.value)} />
-                </label>
-                <label>
-                    Aadhar Number:
-                    <input type="text" value={aadharNumber} onChange={(e) => setAadharNumber(e.target.value)} />
-                </label>
-            </div>
+        <ContainerStyled>
+            <Typography variant="h4" gutterBottom>Voter Dashboard</Typography>
+            <PaperStyled>
+                <Typography variant="h6">
+                    {account ? `Connected: ${account.slice(0, 6)}...${account.slice(-4)}` : 'Connect to MetaMask'}
+                </Typography>
+                <ButtonStyled
+                    variant="contained"
+                    color="primary"
+                    onClick={connectToMetaMask}
+                    disabled={loading}
+                >
+                    {loading ? <CircularProgress size={24} /> : 'Connect to MetaMask'}
+                </ButtonStyled>
+            </PaperStyled>
+            {error && <Alert severity="error">{error}</Alert>}
+            <PaperStyled>
+                <Typography variant="h6">Vote for a Candidate</Typography>
+                <InputStyled
+                    label="Name"
+                    variant="outlined"
+                    value={voterName}
+                    onChange={(e) => setVoterName(e.target.value)}
+                />
+                <InputStyled
+                    label="Aadhar Number"
+                    variant="outlined"
+                    value={aadharNumber}
+                    onChange={(e) => setAadharNumber(e.target.value)}
+                />
+            </PaperStyled>
             <CandidateList candidates={candidates} voteForCandidate={voteForCandidate} />
-        </div>
+        </ContainerStyled>
     );
 };
 
