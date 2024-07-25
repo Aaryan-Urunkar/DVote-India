@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import ElectionABI from '../ElectionABI.json';
 import { PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
@@ -92,21 +92,16 @@ const ElectionMonitor = ({ electionAddress, account, setElectionAddress }) => {
         const { provider } = await getProviderAndSigner();
         if (!provider) return;
 
-        console.log('Using contract address:', electionAddress);
-
         const electionContract = new ethers.Contract(electionAddress, ElectionABI, provider);
 
         try {
             setLoading(true);
             const candidateList = await electionContract.getCandidates();
-            console.log('Raw candidates fetched:', candidateList);
-
             setCandidates(candidateList.map(candidate => ({
                 name: candidate.name,
                 party: candidate.politicalParty,
                 votes: Number(candidate.votes) 
             })));
-            console.log('Processed candidates:', candidates);
         } catch (error) {
             console.error('Error fetching candidates:', error);
         } finally {
@@ -156,11 +151,9 @@ const ElectionMonitor = ({ electionAddress, account, setElectionAddress }) => {
             const tx = await electionContract.declareWinner();
             await tx.wait();
 
-            // Now fetch the winner details
             const [winnerNames, winningParties, maxVotes] = await electionContract.getWinnerDetails();
             alert(`Winner declared: ${winnerNames[0]} (${winningParties[0]}) with ${maxVotes[0]} votes!`);
 
-            // Prepare data for the pie chart
             const chartData = candidates.map(candidate => ({
                 name: `${candidate.name} (${candidate.party})`,
                 votes: candidate.votes
@@ -177,10 +170,36 @@ const ElectionMonitor = ({ electionAddress, account, setElectionAddress }) => {
         localStorage.removeItem(account);
         setElectionAddress(null);
     };
-//YO I SITLL NEED TRO WORK ON THIS LMAO
-    const handleDeleteCandidate = (name) => {
-        alert(`Delete candidate: ${name}`);
+    
+    const handleDeleteCandidate = async (party) => {
+        if (!window.confirm(`Are you sure you want to delete the candidate from party: ${party}?`)) return;
+
+        const { provider, signer } = await getProviderAndSigner();
+        if (!provider || !signer) return;
+
+        const electionContract = new ethers.Contract(electionAddress, ElectionABI, signer);
+
+        try {
+            const tx = await electionContract.removeCandidate(party);
+            await tx.wait();
+            alert('Candidate removed successfully!');
+            
+            fetchCandidates();
+        } catch (error) {
+            console.error('Error removing candidate:', error);
+            alert(`Error removing candidate: ${error.reason || error.message}`);
+        }
     };
+
+    useEffect(() => {
+        fetchCandidates();
+
+        const intervalId = setInterval(() => {
+            fetchCandidates();
+        }, 10000);
+
+        return () => clearInterval(intervalId);
+    }, [electionAddress]);
 
     return (
         <ContainerStyled>
@@ -255,7 +274,7 @@ const ElectionMonitor = ({ electionAddress, account, setElectionAddress }) => {
                         {candidates.map((candidate, index) => (
                             <ListItemStyled key={index}>
                                 <ListItemText primary={`Name: ${candidate.name}`} secondary={`Party: ${candidate.party}, Votes: ${candidate.votes}`} />
-                                <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteCandidate(candidate.name)}>
+                                <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteCandidate(candidate.party)}>
                                     <DeleteIcon />
                                 </IconButton>
                             </ListItemStyled>

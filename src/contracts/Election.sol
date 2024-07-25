@@ -14,9 +14,12 @@ contract Election {
     error VoterHasAlreadyVoted();
     error ElectionNotOpen();
     error CandidateDoesNotExist();
+    error CandidateCannotBeRemoved();
+    error CandidateNotFound();
 
     // Events
     event CandidateAdded(string indexed name, string indexed politicalParty);
+    event CandidateRemoved(string indexed name, string indexed politicalParty);
     event VoterAdded(string indexed aadharNumber, string indexed name);
     event WinnerDeclared(string indexed winningCandidate, string indexed winningParty, uint256 maxVotes);
     event Tie(string[] winningCandidates, string[] winningParties);
@@ -28,9 +31,8 @@ contract Election {
     struct Candidate {
         string name;
         string politicalParty;
-        uint256 votes;
+        uint256 votes; 
     }
-
 
     enum ElectionState {
         OPEN,
@@ -44,6 +46,10 @@ contract Election {
     ElectionState public s_electionStatus;
     address public immutable i_owner;
     uint256 public s_voterTurnout;
+    // State variables to store winner details
+    string[] private winnerNameArray;
+    string[] private winningPartyArray;
+    uint256[] private maxVotesArray;
 
     // Constructor
     constructor(address _owner) {
@@ -62,6 +68,11 @@ contract Election {
         _;
     }
 
+    modifier onlyWhenEnded() {
+        if (s_electionStatus != ElectionState.ENDED) revert ElectionNotEnded();
+        _;
+    }
+
     // Functions
     /**
      * @notice Adds a new candidate to the election
@@ -73,11 +84,39 @@ contract Election {
             if (keccak256(abi.encodePacked(s_candidates[i].politicalParty)) == keccak256(abi.encodePacked(politicalParty))) revert PartyAlreadyExists();
         }
 
-        s_candidates.push(Candidate(name, politicalParty, 0));
+        s_candidates.push(Candidate(name, politicalParty, 0)); 
 
         emit CandidateAdded(name, politicalParty);
     }
 
+    /**
+     * @notice Removes a candidate from the election
+     * @param politicalParty Political party of the candidate to be removed
+     */
+    function removeCandidate(string calldata politicalParty) external onlyOwner onlyWhenEnded {
+        bool candidateFound = false;
+        uint256 indexToRemove = s_candidates.length;
+
+        for (uint256 i = 0; i < s_candidates.length; i++) {
+            if (keccak256(abi.encodePacked(s_candidates[i].politicalParty)) == keccak256(abi.encodePacked(politicalParty))) {
+                candidateFound = true;
+                indexToRemove = i;
+                break;
+            }
+        }
+
+        if (!candidateFound) revert CandidateNotFound();
+        if (indexToRemove >= s_candidates.length) revert CandidateCannotBeRemoved();
+
+        // Remove candidate from the array by swapping with the last element and popping
+        s_candidates[indexToRemove] = s_candidates[s_candidates.length - 1];
+        s_candidates.pop();
+
+        // Remove votes from the mapping
+        delete s_votesPerCandidate[politicalParty];
+
+        emit CandidateRemoved(s_candidates[indexToRemove].name, politicalParty);
+    }
 
     /**
      * @notice Starts the election
@@ -104,7 +143,8 @@ contract Election {
         for (uint256 i = 0; i < length; i++) {
             if (keccak256(abi.encodePacked(s_candidates[i].politicalParty)) == keccak256(abi.encodePacked(candidateParty))) {
                 candidateExists = true;
-                s_candidates[i].votes++;
+                s_candidates[i].votes++; // Increment the vote count
+                s_votesPerCandidate[candidateParty]++;
                 break;
             }
         }
@@ -112,12 +152,10 @@ contract Election {
         if (s_alreadyVoted[aadharNumber]) revert VoterHasAlreadyVoted();
 
         s_alreadyVoted[aadharNumber] = true;
-        s_votesPerCandidate[candidateParty]++;
         s_voterTurnout++;
         emit VoterAdded(aadharNumber, name);
         emit Voted(aadharNumber, candidateParty);
     }
-
 
     /**
      * @notice Ends the election
@@ -133,9 +171,7 @@ contract Election {
      * @return winningPartyArray Array of winning parties
      * @return maxVotesArray Array of max votes
      */
-    function declareWinner() external onlyOwner returns (string[] memory, string[] memory, uint256[] memory) {
-        if (s_electionStatus != ElectionState.ENDED) revert ElectionNotEnded();
-
+    function declareWinner() external onlyOwner onlyWhenEnded returns (string[] memory, string[] memory, uint256[] memory) {
         string memory winnerName;
         string memory winningParty;
         uint256 maxVotes = 0;
@@ -152,6 +188,7 @@ contract Election {
                 tie = true;
             }
         }
+
         uint256 length = s_candidates.length;
         uint256 noOfTiedCandidates = 0;
         for (uint256 i = 0; i < length; i++) {
@@ -160,9 +197,10 @@ contract Election {
             }
         }
 
-        string[] memory winnerNameArray = new string[](noOfTiedCandidates);
-        string[] memory winningPartyArray = new string[](noOfTiedCandidates);
-        uint256[] memory maxVotesArray = new uint256[](noOfTiedCandidates);
+        // Update state variables
+        winnerNameArray = new string[](noOfTiedCandidates);
+        winningPartyArray = new string[](noOfTiedCandidates);
+        maxVotesArray = new uint256[](noOfTiedCandidates);
         uint256 arraysIndex = 0;
 
         for (uint256 i = 0; i < length; i++) {
@@ -179,7 +217,10 @@ contract Election {
         } else {
             emit WinnerDeclared(winnerName, winningParty, maxVotes);
         }
+        return (winnerNameArray, winningPartyArray, maxVotesArray);
+    }
 
+    function getWinnerDetails() public view returns (string[] memory, string[] memory, uint256[] memory) {
         return (winnerNameArray, winningPartyArray, maxVotesArray);
     }
 
@@ -190,7 +231,6 @@ contract Election {
     function getCandidates() external view returns (Candidate[] memory) {
         return s_candidates;
     }
-
 
     /**
      * @notice Gets the election status

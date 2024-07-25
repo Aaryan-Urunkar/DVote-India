@@ -40,7 +40,7 @@ const App = () => {
         <ThemeProvider theme={darkTheme}>
             <CssBaseline />
             <Router>
-                <Container maxWidth="lg" sx={{ marginTop: '16px' }}>
+                <Container maxWidth="lg" sx={{ marginTop: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0', minHeight: '100vh' }}>
                     <Routes>
                         <Route path="/" element={<Homepage />} />
                         <Route path="/LoginUser" element={<LoginUser />} />
