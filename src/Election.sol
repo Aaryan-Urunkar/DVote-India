@@ -10,6 +10,7 @@ contract Election {
     error NotOwner();
     error PartyAlreadyExists();
     error ElectionNotEnded();
+    error ElectionAlreadyStarted();
     error VoterHasAlreadyVoted();
     error ElectionNotOpen();
     error CandidateDoesNotExist();
@@ -19,6 +20,7 @@ contract Election {
     event VoterAdded(string indexed aadharNumber, string indexed name);
     event WinnerDeclared(string indexed winningCandidate, string indexed winningParty, uint256 maxVotes);
     event Tie(string[] winningCandidates, string[] winningParties);
+    event ElectionStarted();
     event ElectionEnded();
     event Voted(string indexed voter, string indexed candidateParty);
 
@@ -44,7 +46,7 @@ contract Election {
     // Constructor
     constructor(address _owner) {
         i_owner = _owner;
-        s_electionStatus = ElectionState.OPEN;
+        s_electionStatus = ElectionState.ENDED; // Initial state set to ENDED
     }
 
     // Modifiers
@@ -64,7 +66,7 @@ contract Election {
      * @param name Name of the candidate
      * @param politicalParty Political party of the candidate
      */
-    function addCandidate(string calldata name, string calldata politicalParty) external  onlyWhenOpen {
+    function addCandidate(string calldata name, string calldata politicalParty) external onlyOwner {
         for (uint256 i = 0; i < s_candidates.length; i++) {
             if (keccak256(abi.encodePacked(s_candidates[i].politicalParty)) == keccak256(abi.encodePacked(politicalParty))) revert PartyAlreadyExists();
         }
@@ -73,6 +75,15 @@ contract Election {
         s_votesPerCandidate[politicalParty] = 0;
 
         emit CandidateAdded(name, politicalParty);
+    }
+
+    /**
+     * @notice Starts the election
+     */
+    function startElection() external onlyOwner {
+        if (s_electionStatus == ElectionState.OPEN) revert ElectionAlreadyStarted();
+        s_electionStatus = ElectionState.OPEN;
+        emit ElectionStarted();
     }
 
     /**
