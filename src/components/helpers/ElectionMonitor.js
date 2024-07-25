@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ethers } from 'ethers';
 import ElectionABI from '../ElectionABI.json';
 import { PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
-import { Button, TextField, Typography, Container, Paper, CircularProgress, List, ListItem, ListItemText, IconButton } from '@mui/material';
+import { Button, TextField, Typography, Container, Paper, CircularProgress, List, ListItem, ListItemText, IconButton, Snackbar, Alert } from '@mui/material';
 import { styled } from '@mui/system';
 import DeleteIcon from '@mui/icons-material/Delete';
 
@@ -57,11 +57,14 @@ const ElectionMonitor = ({ electionAddress, account, setElectionAddress }) => {
     const [candidates, setCandidates] = useState([]);
     const [loading, setLoading] = useState(false);
     const [chartData, setChartData] = useState([]);
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState('success');
     const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
     const getProviderAndSigner = async () => {
         if (!window.ethereum) {
-            alert('MetaMask is not installed!');
+            showSnackbar('MetaMask is not installed!', 'error');
             return null;
         }
 
@@ -71,7 +74,7 @@ const ElectionMonitor = ({ electionAddress, account, setElectionAddress }) => {
     };
 
     const addCandidate = async () => {
-        if (!candidateName || !candidateParty) return alert('Please enter candidate details.');
+        if (!candidateName || !candidateParty) return showSnackbar('Please enter candidate details.', 'error');
 
         const { provider, signer } = await getProviderAndSigner();
         if (!provider || !signer) return;
@@ -81,10 +84,10 @@ const ElectionMonitor = ({ electionAddress, account, setElectionAddress }) => {
         try {
             const tx = await electionContract.addCandidate(candidateName, candidateParty);
             await tx.wait();
-            alert('Candidate added successfully!');
+            showSnackbar('Candidate added successfully!', 'success');
         } catch (error) {
             console.error('Error adding candidate:', error);
-            alert(`Error adding candidate: ${error.reason || error.message}`);
+            showSnackbar(`Error adding candidate: ${error.reason || error.message}`, 'error');
         }
     };
 
@@ -118,10 +121,10 @@ const ElectionMonitor = ({ electionAddress, account, setElectionAddress }) => {
         try {
             const tx = await electionContract.startElection();
             await tx.wait();
-            alert('Election started successfully!');
+            showSnackbar('Election started successfully!', 'success');
         } catch (error) {
             console.error('Error starting election:', error);
-            alert(`Error starting election: ${error.message}`);
+            showSnackbar(`Error starting election: ${error.message}`, 'error');
         }
     };
 
@@ -134,10 +137,10 @@ const ElectionMonitor = ({ electionAddress, account, setElectionAddress }) => {
         try {
             const tx = await electionContract.endElection();
             await tx.wait();
-            alert('Election ended successfully!');
+            showSnackbar('Election ended successfully!', 'success');
         } catch (error) {
             console.error('Error ending election:', error);
-            alert(`Error ending election: ${error.message}`);
+            showSnackbar(`Error ending election: ${error.message}`, 'error');
         }
     };
 
@@ -152,7 +155,7 @@ const ElectionMonitor = ({ electionAddress, account, setElectionAddress }) => {
             await tx.wait();
 
             const [winnerNames, winningParties, maxVotes] = await electionContract.getWinnerDetails();
-            alert(`Winner declared: ${winnerNames[0]} (${winningParties[0]}) with ${maxVotes[0]} votes!`);
+            showSnackbar(`Winner declared: ${winnerNames[0]} (${winningParties[0]}) with ${maxVotes[0]} votes!`, 'success');
 
             const chartData = candidates.map(candidate => ({
                 name: `${candidate.name} (${candidate.party})`,
@@ -162,7 +165,7 @@ const ElectionMonitor = ({ electionAddress, account, setElectionAddress }) => {
             setChartData(chartData);
         } catch (error) {
             console.error('Error declaring winner:', error);
-            alert(`Error declaring winner: ${error.message}`);
+            showSnackbar(`Error declaring winner: ${error.message}`, 'error');
         }
     };
 
@@ -182,13 +185,23 @@ const ElectionMonitor = ({ electionAddress, account, setElectionAddress }) => {
         try {
             const tx = await electionContract.removeCandidate(party);
             await tx.wait();
-            alert('Candidate removed successfully!');
+            showSnackbar('Candidate removed successfully!', 'success');
             
             fetchCandidates();
         } catch (error) {
             console.error('Error removing candidate:', error);
-            alert(`Error removing candidate: ${error.reason || error.message}`);
+            showSnackbar(`Error removing candidate: ${error.reason || error.message}`, 'error');
         }
+    };
+
+    const showSnackbar = (message, severity) => {
+        setSnackbarMessage(message);
+        setSnackbarSeverity(severity);
+        setSnackbarOpen(true);
+    };
+
+    const handleCloseSnackbar = () => {
+        setSnackbarOpen(false);
     };
 
     useEffect(() => {
@@ -204,9 +217,7 @@ const ElectionMonitor = ({ electionAddress, account, setElectionAddress }) => {
     return (
         <ContainerStyled>
             <Typography variant="h4" gutterBottom>Election Monitor</Typography>
-            <PaperStyled>
-                <Typography variant="h6">Contract Address: {electionAddress}</Typography>
-            </PaperStyled>
+            
             <div>
                 <InputStyled
                     label="Candidate Name"
@@ -304,6 +315,11 @@ const ElectionMonitor = ({ electionAddress, account, setElectionAddress }) => {
                     </PieChart>
                 </PieChartStyled>
             )}
+            <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleCloseSnackbar}>
+                <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity}>
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
         </ContainerStyled>
     );
 };

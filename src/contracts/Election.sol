@@ -106,17 +106,17 @@ contract Election {
         }
 
         if (!candidateFound) revert CandidateNotFound();
-        if (indexToRemove >= s_candidates.length) revert CandidateCannotBeRemoved();
 
-        // Remove candidate from the array by swapping with the last element and popping
-        s_candidates[indexToRemove] = s_candidates[s_candidates.length - 1];
-        s_candidates.pop();
+        if (s_candidates.length > 0 && indexToRemove < s_candidates.length) {
+            s_candidates[indexToRemove] = s_candidates[s_candidates.length - 1];
+            s_candidates.pop();
+        }
 
-        // Remove votes from the mapping
         delete s_votesPerCandidate[politicalParty];
 
         emit CandidateRemoved(s_candidates[indexToRemove].name, politicalParty);
     }
+
 
     /**
      * @notice Starts the election
@@ -265,3 +265,4 @@ contract Election {
         return s_voterTurnout;
     }
 }
+
