@@ -7,10 +7,10 @@ contract DeployElection is Script{
     
     event CreatedNewElection(address electionAddress);
 
-    function run(uint256 sample_region_code, address adminAddress) public returns(address){
+    function run(address adminAddress) public returns(address){
 
         vm.startBroadcast();
-        Election election = new Election(sample_region_code, adminAddress);
+        Election election = new Election(adminAddress);
         vm.stopBroadcast();
         emit CreatedNewElection(address(election));
         return address(election) ;
