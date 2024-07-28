@@ -342,6 +342,7 @@ const VoterDashboard = ({ electionAddress }) => {
               label="Voter ID"
               variant="outlined"
               value={voterDetails.id_number}
+              //disabled (turn this on in deployment) below is for test since no voter ids except mine
               onChange={(e) => {
                 const updatedDetails = { ...voterDetails, id_number: e.target.value };
                 navigate(location.pathname, { state: { voterDetails: updatedDetails } });
