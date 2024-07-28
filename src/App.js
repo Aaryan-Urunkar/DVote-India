@@ -18,6 +18,13 @@ const darkTheme = createTheme({
         secondary: {
             main: '#f48fb1',
         },
+        background: {
+            default: '#121212', 
+            paper: '#1d1d1d',
+        },
+        text: {
+            primary: '#ffffff',
+        },
     },
 });
 
@@ -40,7 +47,18 @@ const App = () => {
         <ThemeProvider theme={darkTheme}>
             <CssBaseline />
             <Router>
-                <Container maxWidth="lg" sx={{ marginTop: '16px', display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '0', minHeight: '100vh' }}>
+                <Container
+                    maxWidth="lg"
+                    sx={{
+                        marginTop: '16px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        padding: '0',
+                        minHeight: '100vh',
+                        bgcolor: 'background.default', 
+                    }}
+                >
                     <Routes>
                         <Route path="/" element={<Homepage />} />
                         <Route path="/LoginUser" element={<LoginUser />} />

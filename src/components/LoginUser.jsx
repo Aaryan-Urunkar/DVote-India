@@ -1,18 +1,32 @@
-import { wait } from '@testing-library/user-event/dist/utils';
-import React, { useState , useRef } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from './Navbar';
-import "./css/LoginUser.css";
+import Snackbar from '@mui/material/Snackbar';
+import MuiAlert from '@mui/material/Alert';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
+
+const Alert = React.forwardRef(function Alert(props, ref) {
+    return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
 
 const LoginUser = () => {
     const [voterIDNumber, setVoterIDNumber] = useState('');
     const [verificationResult, setVerificationResult] = useState(null);
     const [error, setError] = useState('');
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState('');
+    const [snackbarSeverity, setSnackbarSeverity] = useState('success');
 
     const voterIDRef = useRef('');
 
     const navigate = useNavigate();
+
+    const handleSnackbarClose = () => {
+        setSnackbarOpen(false);
+    };
+
     const handleVerifyVoterID = async () => {
         setError('');
         setVerificationResult(null);
@@ -21,14 +35,17 @@ const LoginUser = () => {
             const requestOptions = {
                 method: 'POST',
                 headers: {
-                    "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmcmVlX3RpZXJfdmFydW4uamhhdmVyaTIzX2EyMmZkNDdjYzIiLCJleHAiOjE3MjEzMjE1Njl9.FGKLtxxMBRAouvmH3yptj-gHpCviftGeI8IHZMryQ9U",
-                    "x-api-key": "5fdf06b68ae74d45b74d1332623dfaeb",
-                    "Content-Type": "application/json"
+                    Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmcmVlX3RpZXJfYWFyeWFuLnVydW5rYXIyM180ZDk1NmI5YjIwIiwiZXhwIjoxNzIyMjcxMzg5fQ.EjtkYsFL5kY28dj1v76Et4pZPJAt8FpfTyi7tI0vEas',
+                    'x-api-key': '3cc6bc71398a49d9b955380a79798d11',
+                    'Content-Type': 'application/json',
                 },
-                redirect: 'follow'
+                redirect: 'follow',
             };
 
-            const response = await fetch(`https://production.deepvue.tech/v1/verification/post-voter-id?epic_number=${voterIDNumber}`, requestOptions);
+            const response = await fetch(
+                `https://production.deepvue.tech/v1/verification/post-voter-id?epic_number=${voterIDNumber}`,
+                requestOptions
+            );
 
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
@@ -46,6 +63,9 @@ const LoginUser = () => {
         } catch (error) {
             console.error('Error verifying Voter ID:', error);
             setError(`Error: ${error.message}`);
+            setSnackbarSeverity('error');
+            setSnackbarMessage(`Error: ${error.message}`);
+            setSnackbarOpen(true);
         }
     };
 
@@ -54,31 +74,41 @@ const LoginUser = () => {
             const requestOptions = {
                 method: 'GET',
                 headers: {
-                    "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmcmVlX3RpZXJfdmFydW4uamhhdmVyaTIzX2EyMmZkNDdjYzIiLCJleHAiOjE3MjEzMjE1Njl9.FGKLtxxMBRAouvmH3yptj-gHpCviftGeI8IHZMryQ9U",
-                    "x-api-key": "5fdf06b68ae74d45b74d1332623dfaeb",
-                    "Content-Type": "application/json"
+                    Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmcmVlX3RpZXJfYWFyeWFuLnVydW5rYXIyM180ZDk1NmI5YjIwIiwiZXhwIjoxNzIyMjcxMzg5fQ.EjtkYsFL5kY28dj1v76Et4pZPJAt8FpfTyi7tI0vEas',
+                    'x-api-key': '3cc6bc71398a49d9b955380a79798d11',
+                    'Content-Type': 'application/json',
                 },
-                redirect: 'follow'
+                redirect: 'follow',
             };
-    
+
             let pollingInterval = setInterval(async () => {
                 try {
-                    const response = await fetch(`https://production.deepvue.tech/v1/verification/get-voter-id?request_id=${requestID}`, requestOptions);
-    
+                    const response = await fetch(
+                        `https://production.deepvue.tech/v1/verification/get-voter-id?request_id=${requestID}`,
+                        requestOptions
+                    );
+
                     if (!response.ok) {
                         throw new Error(`HTTP error! Status: ${response.status}`);
                     }
-    
+
                     const responseData = await response.json();
-    
+
                     if (Array.isArray(responseData) && responseData.length > 0) {
                         const firstResponse = responseData[0];
                         if (firstResponse.status === 'completed') {
                             clearInterval(pollingInterval);
                             setVerificationResult(firstResponse.result.source_output);
+                            setSnackbarSeverity('success');
+                            setSnackbarMessage('Verification successful!');
+                            setSnackbarOpen(true);
+                            handleVerificationSuccess();
                         } else if (firstResponse.status === 'error') {
                             clearInterval(pollingInterval);
                             setError(`Polling error: ${firstResponse.message}`);
+                            setSnackbarSeverity('error');
+                            setSnackbarMessage(`Polling error: ${firstResponse.message}`);
+                            setSnackbarOpen(true);
                         }
                     } else {
                         throw new Error('Empty or unexpected response data');
@@ -87,79 +117,129 @@ const LoginUser = () => {
                     console.error('Error polling Voter ID details:', error);
                     clearInterval(pollingInterval);
                     setError(`Error: ${error.message}`);
+                    setSnackbarSeverity('error');
+                    setSnackbarMessage(`Error: ${error.message}`);
+                    setSnackbarOpen(true);
                 }
-            }, 2000); 
+            }, 2000);
         } catch (error) {
             console.error('Error starting polling:', error);
             setError(`Error: ${error.message}`);
+            setSnackbarSeverity('error');
+            setSnackbarMessage(`Error: ${error.message}`);
+            setSnackbarOpen(true);
         }
     };
+
     const handleVerificationSuccess = () => {
         if (verificationResult && verificationResult.status === 'id_found') {
             navigate('/Voter-Dashboard', { state: { voterDetails: verificationResult } });
-            voterIDRef.current.classList.add("wrong");
+            voterIDRef.current.classList.remove('wrong');
         } else {
             setError('Verification failed. Please try again.');
-            voterIDRef.current.classList.add("wrong");
+            setSnackbarSeverity('error');
+            setSnackbarMessage('Verification failed. Please try again.');
+            setSnackbarOpen(true);
+            voterIDRef.current.classList.add('wrong');
         }
     };
 
-    
-
     return (
         <>
-            <Navbar></Navbar>
-            <div className='login-user-container'>
-                <div className='login-box'> { /*login-box CSS not present in LoginUser.css file but instead in LoginAdmin.css file*/}
-                    <h2>Voter ID Verification</h2>
-                    <input
-                        type="text"
+            <Navbar />
+            <Box
+                className='login-user-container'
+                display='flex'
+                flexDirection='column'
+                justifyContent='center'
+                alignItems='center'
+                height='100vh'
+                width='100vw'
+                bgcolor='background.default'
+            >
+                <Box
+                    className='login-box'
+                    display='flex'
+                    flexDirection='column'
+                    alignItems='center'
+                    justifyContent='center'
+                    p={10}  
+                    boxShadow={3}
+                    borderRadius={10}
+                    bgcolor='#d4941c'
+                    width='60vw' 
+                    maxWidth='800px' 
+                    
+                >
+                    <h2 style={{ color: 'text.primary' }}>Voter ID Verification</h2>
+                    <TextField
+                        type='text'
                         name='VoterID'
-                        ref={voterIDRef}
-                        placeholder="Enter Voter ID Number"
+                        inputRef={voterIDRef}
+                        placeholder='Enter Voter ID Number'
                         value={voterIDNumber}
                         onChange={(e) => setVoterIDNumber(e.target.value)}
-                        className='admin-login-input' 
-                        />
-                    <br /> {/*admin-login-input CSS not present in LoginUser.css file but instead in LoginAdmin.css file */}
-                    <motion.button
+                        className='admin-login-input'
+                        borderRadius={10}
+                        variant='outlined'
+                        fullWidth
+                        margin='normal'
+                        sx={{
+                            '& .MuiOutlinedInput-root': {
+                                '& fieldset': {
+                                    borderColor: 'transparent', 
+                                },
+                                '&:hover fieldset': {
+                                    borderColor: 'transparent', 
+                                },
+                                '&.Mui-focused fieldset': {
+                                    borderColor: 'transparent', 
+                                },
+                            },
+                            input: {
+                                color: 'text.primary',
+                                backgroundColor: 'background.paper',
+                            },
+                        }}
+                    />
+
+                    <Button
                         onClick={() => {
                             handleVerifyVoterID();
-                            pollVoterIDDetails();
-                            wait(2000)
-                            handleVerificationSuccess(); 
                         }}
-                        className = "user-login-button"
-                        whileTap={{
-                            scale:"0.8",                            
+                        className='user-login-button'
+                        variant='contained'
+                        color='primary'
+                        size='large'
+                        sx={{
+                            mt: 2,
+                            width: '50%', 
+                            backgroundColor: 'blanchedalmond',
+                            color: 'black',
+                            height: '5vh',
+                            fontFamily: 'Ubuntu Sans',
+                            fontWeight: 'bold',
+                            fontSize: '18px',
+                            '&:hover': {
+                                backgroundColor: 'rgb(128,77,2)',
+                                color: 'beige',
+                            },
                         }}
-                        whileHover={{
-                            backgroundColor:"rgb(128,77,2)" ,
-                            color:"beige"
-                        }}
-                        transition={{
-                            duration:"0.5"
-                        }}
-                        >
+                    >
                         Verify
-                    </motion.button>
-                    <div >
-                        {error && <p>{error}</p>}
-                        {verificationResult && (
-                            <div>
-                                <h3>Verification Results</h3>
-                                <ul >
-                                    <li><strong>AC No:</strong> {verificationResult.ac_no}</li>
-                                    <li><strong>Date of Birth:</strong> {verificationResult.date_of_birth}</li>
-                                    <li><strong>District:</strong> {verificationResult.district}</li>
-                                    <li><strong>Gender:</strong> {verificationResult.gender}</li>
-                                    <li><strong>status:</strong> {verificationResult.status}</li>
-                                </ul>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
+                    </Button>
+                </Box>
+            </Box>
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={6000}
+                onClose={handleSnackbarClose}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+            >
+                <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
+                    {snackbarMessage}
+                </Alert>
+            </Snackbar>
         </>
     );
 };

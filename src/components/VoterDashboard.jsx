@@ -20,8 +20,8 @@ import {
   Snackbar,
   Grid
 } from "@mui/material";
-import { styled } from "@mui/system";
-import { useNavigate } from "react-router-dom";
+import { styled } from '@mui/material/styles';
+import { useNavigate, useLocation } from "react-router-dom";
 
 const ContainerStyled = styled(Container)({
   marginTop: "16px",
@@ -61,13 +61,18 @@ const ProfileStyled = styled(Paper)({
   marginRight: "16px",
 });
 
+const BlurredText = styled('span')(({ isVisible }) => ({
+  filter: isVisible ? 'none' : 'blur(5px)',
+  transition: 'filter 0.3s ease-in-out',
+}));
+
+
 const VoterDashboard = ({ electionAddress }) => {
   const [account, setAccount] = useState(null);
   const [candidates, setCandidates] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [voterName, setVoterName] = useState("");
-  const [aadharNumber, setAadharNumber] = useState("");
   const [electionStatus, setElectionStatus] = useState(
     localStorage.getItem("electionStatus") || "closed"
   );
@@ -82,6 +87,8 @@ const VoterDashboard = ({ electionAddress }) => {
   const [snackbarMessage, setSnackbarMessage] = useState("");
 
   const navigate = useNavigate();
+  const location = useLocation();  
+  const voterDetails = location.state?.voterDetails || {};  
 
   const fetchCandidates = useCallback(async () => {
     if (!electionAddress) return;
@@ -181,7 +188,7 @@ const VoterDashboard = ({ electionAddress }) => {
   };
 
   const voteForCandidate = async (candidateParty) => {
-    if (!account || !voterName || !aadharNumber)
+    if (!account || !voterName || !voterDetails.id_number)
       return alert("Please fill in all details and connect to MetaMask first.");
     const provider = new ethers.BrowserProvider(window.ethereum);
     const signer = await provider.getSigner();
@@ -195,7 +202,7 @@ const VoterDashboard = ({ electionAddress }) => {
       setLoading(true);
       const tx = await electionContract.vote(
         voterName,
-        aadharNumber,
+        voterDetails.id_number,
         candidateParty
       );
       await tx.wait();
@@ -253,55 +260,48 @@ const VoterDashboard = ({ electionAddress }) => {
     };
   }, [navigate]);
 
-  const verificationResult = {
-    ac_no: "123456",
-    date_of_birth: "01/01/1980",
-    district: "Dummy District",
-    gender: "Male",
-    house_no: "123",
-    id_number: "ID123456",
-    last_update: "01/01/2024",
-    name_on_card: "John Doe",
-    part_no: "Part1",
-    ps_lat_long: "12.3456, 78.9012",
-    ps_name: "Polling Station 1",
-    rln_name: "John Doe",
-    section_no: "Section A",
-    source: "Source",
-    st_code: "ST123",
-    state: "Dummy State",
-    status: "Active",
-  };
+  const isNameCorrect = voterName.toUpperCase() === voterDetails.name_on_card?.toUpperCase();
 
   return (
     <ContainerStyled>
       <Grid container spacing={2}>
-        <Grid item xs={3}>
+        <Grid item xs={4}>
           <ProfileStyled>
             <Typography variant="h6" gutterBottom>
               Profile
             </Typography>
             <Typography variant="h6"></Typography>
-            <p><strong>AC No:</strong> {verificationResult.ac_no}</p>
-            <p><strong>Date of Birth:</strong> {verificationResult.date_of_birth}</p>
-            <p><strong>District:</strong> {verificationResult.district}</p>
-            <p><strong>Gender:</strong> {verificationResult.gender}</p>
-            <p><strong>House No:</strong> {verificationResult.house_no}</p>
-            <p><strong>ID Number:</strong> {verificationResult.id_number}</p>
-            <p><strong>Last Update:</strong> {verificationResult.last_update}</p>
-            <p><strong>Name on Card:</strong> {verificationResult.name_on_card}</p>
-            <p><strong>Part No:</strong> {verificationResult.part_no}</p>
-            <p><strong>PS Lat Long:</strong> {verificationResult.ps_lat_long}</p>
-            <p><strong>PS Name:</strong> {verificationResult.ps_name}</p>
-            <p><strong>Rln Name:</strong> {verificationResult.rln_name}</p>
-            <p><strong>Section No:</strong> {verificationResult.section_no}</p>
-            <p><strong>Source:</strong> {verificationResult.source}</p>
-            <p><strong>ST Code:</strong> {verificationResult.st_code}</p>
-            <p><strong>State:</strong> {verificationResult.state}</p>
-            <p><strong>Status:</strong> {verificationResult.status}</p>
+            <p><strong>AC No:</strong> {voterDetails.ac_no}</p>
+            <p><strong>District:</strong> {voterDetails.district}</p>
+            <p>
+              <strong>Gender:</strong>{" "}
+              {voterDetails.gender === "M"
+                ? "Male"
+                : voterDetails.gender === "F"
+                ? "Female"
+                : "Unspecified"}
+            </p>
+            <p><strong>ID Number:</strong> {voterDetails.id_number}</p>
+            <p>
+              <strong>Name on Card:</strong>{' '}
+              <BlurredText isVisible={isNameCorrect}>
+                {voterDetails.name_on_card ? voterDetails.name_on_card.toUpperCase() : ''}
+              </BlurredText>
+            </p>
+
+            <p><strong>Part No:</strong> {voterDetails.part_no}</p>
+            <p><strong>Lat Long:</strong> {voterDetails.ps_lat_long}</p>
+            <p><strong>Nearest Voting Commissioner Address:</strong> {voterDetails.ps_name}</p>
+            <p>
+              <strong>Guardian Name:</strong>{" "}
+              {voterDetails.rln_name ? voterDetails.rln_name.toUpperCase() : ""}
+            </p>            
+            <p><strong>Section No:</strong> {voterDetails.section_no}</p>
+            <p><strong>Source:</strong> {voterDetails.source}</p>
+            <p><strong>State:</strong> {voterDetails.state}</p>
           </ProfileStyled>
         </Grid>
-        <Grid item xs={9}>
+        <Grid item xs={8}>
           {remainingTime > 0 && (
             <TimerStyled>
               {`Time Left: ${Math.floor(remainingTime / 60000)}m ${Math.floor(
@@ -335,13 +335,19 @@ const VoterDashboard = ({ electionAddress }) => {
               variant="outlined"
               value={voterName}
               onChange={(e) => setVoterName(e.target.value)}
+              error={!isNameCorrect && voterName !== ""}
+              helperText={!isNameCorrect && voterName !== "" ? "Name does not match Name on Card" : ""}
             />
             <InputStyled
-              label="Aadhar Number"
+              label="Voter ID"
               variant="outlined"
-              value={aadharNumber}
-              onChange={(e) => setAadharNumber(e.target.value)}
+              value={voterDetails.id_number}
+              onChange={(e) => {
+                const updatedDetails = { ...voterDetails, id_number: e.target.value };
+                navigate(location.pathname, { state: { voterDetails: updatedDetails } });
+              }}
             />
+
           </PaperStyled>
           <CandidateList
             candidates={candidates}
