@@ -109,7 +109,6 @@ const AboutUs = () => {
                         </Grid>
                     </Paper>
 
-                    {/* New Section for Canva and GitHub Link */}
                     <Paper elevation={3} style={{ padding: '20px', borderRadius: '16px', marginTop: '30px' }}>
                         <Typography variant="h5" align="center" gutterBottom>
                             Resources
