@@ -380,10 +380,21 @@ const VoterDashboard = ({ electionAddress }) => {
                 Please read and accept the following rules before proceeding:
               </Typography>
               <ol>
-                {Array.from({ length: 15 }, (_, i) => (
-                  <li key={i}>Rule {i + 1}: [Dummy rule description]</li>
-                ))}
+                <li>Rule 1: Voting is only allowed for registered voters.</li>
+                <li>Rule 2: Each voter can vote only once.</li>
+                <li>Rule 3: Voting is confidential and your choices will not be disclosed.</li>
+                <li>Rule 4: Ensure all required fields are correctly filled before submitting your vote.</li>
+                <li>Rule 5: MetaMask is instealled and logged in before continuing.</li>
+                <li>Rule 6: You must accept the rules to proceed with voting.</li>
+                <li>Rule 7: Follow the instructions provided on the voting interface.</li>
+                <li>Rule 8: In case of any issues, contact support immediately.</li>
+                <li>Rule 9: Only votes cast within the election period will be counted.</li>
+                <li>Rule 10: Any attempt to manipulate the system is prohibited and will be reported.</li>
+                <li>Rule 11: The results of the election will be announced after the voting period ends.</li>
+                <li>Rule 12: The decision of the election committee is final and binding.</li>
+                <li>Rule 13: By accepting these rules, you agree to abide by them and understand the consequences of violating them.</li>
               </ol>
+
               <FormControlLabel
                 control={
                   <Checkbox
