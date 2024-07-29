@@ -72,7 +72,7 @@ const AdminDashboard = ({ setElectionAddress, electionAddress }) => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [confirmRevealOpen, setConfirmRevealOpen] = useState(false); // New state for confirmation dialog
+  const [confirmRevealOpen, setConfirmRevealOpen] = useState(false); 
   const [showFullAddress, setShowFullAddress] = useState(false);
 
   const navigate = useNavigate(); 
@@ -93,7 +93,7 @@ const AdminDashboard = ({ setElectionAddress, electionAddress }) => {
     if (electionAddress) {
       fetchElectionStatus();
       const interval = setInterval(fetchElectionStatus, 2000);
-      return () => clearInterval(interval); // Clear interval on component unmount
+      return () => clearInterval(interval); 
     }
   }, [electionAddress]);
 
@@ -176,7 +176,7 @@ const AdminDashboard = ({ setElectionAddress, electionAddress }) => {
     if (showFullAddress) {
       setShowFullAddress(false);
     } else {
-      setConfirmRevealOpen(true); // Open the confirmation dialog
+      setConfirmRevealOpen(true); 
     }
   };
 

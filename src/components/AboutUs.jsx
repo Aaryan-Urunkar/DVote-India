@@ -4,9 +4,9 @@ import LinkedInIcon from '@mui/icons-material/LinkedIn';
 import GitHubIcon from '@mui/icons-material/GitHub';
 import { styled } from '@mui/material/styles';
 import Navbar from './Navbar';
-
+import CanvaImage from '../components/assets/CanvaIcon.png';
 const teamMembers = [
-    { name: 'Aaryan Urunkar', linkedin: '#', github: '#' },
+    { name: 'Aaryan Urunkar', linkedin: '#', github: 'https://github.com/Aaryan-Urunkar/DVote-India' },
     { name: 'Nitya Shetty', linkedin: '#', github: '#' },
     { name: 'Varun Jhaveri', linkedin: 'https://www.linkedin.com/in/vnjhaveri/', github: 'https://github.com/CYCLOP5' },
     { name: 'Devesh Acharya', linkedin: '#', github: '#' },
@@ -107,6 +107,21 @@ const AboutUs = () => {
                                 </Grid>
                             ))}
                         </Grid>
+                    </Paper>
+
+                    {/* New Section for Canva and GitHub Link */}
+                    <Paper elevation={3} style={{ padding: '20px', borderRadius: '16px', marginTop: '30px' }}>
+                        <Typography variant="h5" align="center" gutterBottom>
+                            Resources
+                        </Typography>
+                        <Box display="flex" justifyContent="center" alignItems="center" gap="20px">
+                            <IconButton href="https://www.canva.com/design/DAGMWyRDln0/EiAN7IyyHCqyEP1UXE17tw/edit" target="_blank" aria-label="Canva">
+                                <img src={CanvaImage} alt="Canva" style={{ width: 40, height: 40 }} />
+                            </IconButton>
+                            <IconButton href="https://github.com/Aaryan-Urunkar/DVote-India" target="_blank" aria-label="GitHub">
+                                <GitHubIcon style={{ fontSize: 40 }} />
+                            </IconButton>
+                        </Box>
                     </Paper>
                 </Box>
             </Container>
