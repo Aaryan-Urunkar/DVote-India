@@ -47,6 +47,7 @@
     ]
   },
   "devDependencies": {
+    "@appnest/readme": "^1.2.7",
     "@testing-library/dom": "^10.3.2",
     "@testing-library/jest-dom": "^6.4.6"
   }
