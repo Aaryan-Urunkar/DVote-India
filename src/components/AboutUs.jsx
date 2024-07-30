@@ -6,10 +6,10 @@ import { styled } from '@mui/material/styles';
 import Navbar from './Navbar';
 import CanvaImage from '../components/assets/CanvaIcon.png';
 const teamMembers = [
-    { name: 'Aaryan Urunkar', linkedin: '#', github: 'https://github.com/Aaryan-Urunkar/DVote-India' },
+    { name: 'Aaryan Urunkar', linkedin: '#', github: 'https://github.com/Aaryan-Urunkar' },
     { name: 'Nitya Shetty', linkedin: '#', github: '#' },
     { name: 'Varun Jhaveri', linkedin: 'https://www.linkedin.com/in/vnjhaveri/', github: 'https://github.com/CYCLOP5' },
-    { name: 'Devesh Acharya', linkedin: '#', github: '#' },
+    { name: 'Devesh Acharya', linkedin: 'https://linktr.ee/deveshacharya', github: 'https://linktr.ee/deveshacharya' },
     { name: 'Swayam Kelkar', linkedin: '#', github: '#' },
     { name: 'Sarthi Kanade', linkedin: '#', github: '#' },
     { name: 'Floyd Pinto', linkedin: '#', github: '#' },
