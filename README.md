@@ -85,3 +85,56 @@ To run the tests and deploy on a local blockchain network, follow the steps:
     ```sh
     forge create src/Election.sol:Election --private-key {ANVIL_PRIVATE_KEY} --constructor-args {ANVIL_PUBLIC_KEY}
     ```
+
+
+## Features
+
+- **Add Candidates**: Register candidates for election, ensuring no duplicate party candidates in the same region.
+- **Vote**: Allow registered voters to cast their votes for candidates from their region.
+- **End Election**: Mark the election as ended.
+- **Declare Winner**: Calculate and declare the winner(s) based on the highest number of votes, handling ties appropriately.
+- **Manage Voters**: Track voter participation to prevent double voting.
+
+## Contract Functions
+
+- **addCandidate**: Add a new candidate for the election.
+- **vote**: Cast a vote for a candidate.
+- **endElection**: End the current election.
+- **declareWinner**: Declare the winner(s) of the election.
+- **getCandidates**: Retrieve the list of all candidates.
+- **getVoters**: Retrieve the list of all voters who have cast their votes.
+- **getElectionStatus**: Get the current status of the election.
+- **getVotesPerCandidate**: Get the total votes received by a specific candidate.
+- **getVotesCount**: Get the list of votes for each candidate after the election ends.
+- **getRegionCode**: Get the region code associated with the election.
+
+## Errors
+
+- `NotOwner`: Caller is not the contract owner.
+- `PartyAlreadyExists`: Party already exists in the region.
+- `ElectionNotEnded`: Attempted operation on an election that has not ended.
+- `VoterHasAlreadyVoted`: Voter has already cast their vote.
+- `ElectionNotOpen`: Operation attempted when the election is not open.
+- `IllegalTransfer`: Illegal transfer of Ether to the contract.
+- `CandidateDoesNotExist`: Candidate does not exist in the election.
+- `VoterNotVotingFromResidentshipRegion`: Voter is not from the designated region.
+
+## Events
+
+- `CandidateAdded`: Emitted when a candidate is added.
+- `VoterAdded`: Emitted when a voter is registered.
+- `WinnerDeclared`: Emitted when the winner is declared.
+- `Tie`: Emitted in case of a tie between candidates.
+
+## How to Use
+
+1. **Deploy the Contract**: Deploy the contract to a Solidity-compatible blockchain.
+2. **Add Candidates**: Use `addCandidate` to register candidates.
+3. **Register Voters**: Voters can register using `vote` function.
+4. **End the Election**: Call `endElection` to close the election.
+5. **Declare the Winner**: Call `declareWinner` to determine and announce the winner.
+
+
+## License
+
+This project is licensed under the GNU General Public License v3.0. See the [LICENSE](LICENSE) file for details.
