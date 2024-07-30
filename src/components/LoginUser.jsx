@@ -35,7 +35,7 @@ const LoginUser = () => {
             const requestOptions = {
                 method: 'POST',
                 headers: {
-                    Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmcmVlX3RpZXJfYWFyeWFuLnVydW5rYXIyM180ZDk1NmI5YjIwIiwiZXhwIjoxNzIyMjcxMzg5fQ.EjtkYsFL5kY28dj1v76Et4pZPJAt8FpfTyi7tI0vEas',
+                    Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmcmVlX3RpZXJfYWFyeWFuLnVydW5rYXIyM180ZDk1NmI5YjIwIiwiZXhwIjoxNzIyNDQ1NDY0fQ.x_cr6AkFAOveCxKmCxNt9qx-Ii-R0fNwz9PP36tJ0f4',
                     'x-api-key': '3cc6bc71398a49d9b955380a79798d11',
                     'Content-Type': 'application/json',
                 },
@@ -74,7 +74,7 @@ const LoginUser = () => {
             const requestOptions = {
                 method: 'GET',
                 headers: {
-                    Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmcmVlX3RpZXJfYWFyeWFuLnVydW5rYXIyM180ZDk1NmI5YjIwIiwiZXhwIjoxNzIyMjcxMzg5fQ.EjtkYsFL5kY28dj1v76Et4pZPJAt8FpfTyi7tI0vEas',
+                    Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJmcmVlX3RpZXJfYWFyeWFuLnVydW5rYXIyM180ZDk1NmI5YjIwIiwiZXhwIjoxNzIyNDQ1NDY0fQ.x_cr6AkFAOveCxKmCxNt9qx-Ii-R0fNwz9PP36tJ0f4',
                     'x-api-key': '3cc6bc71398a49d9b955380a79798d11',
                     'Content-Type': 'application/json',
                 },
